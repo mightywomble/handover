@@ -1,8 +1,9 @@
 # handover_app/routes.py
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for,
-    current_app, send_from_directory
+    current_app
 )
+from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
 import json
@@ -10,32 +11,57 @@ import uuid
 from datetime import datetime
 
 from .forms import large_cluster_form_sections, large_cluster_stage_order, base_install_form_definition
-from .utils import allowed_file, process_dynamic_table
+from .utils import allowed_file, process_dynamic_table, admin_required
+from .auth import get_user_db, save_user_db
+from .models import User
 
 bp = Blueprint('handover', __name__)
 
 @bp.route('/')
+@login_required
 def index():
     """Shows the initial selection screen."""
     session.clear()
     return render_template('start.html')
 
+@bp.route('/settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def settings():
+    """Admin page to manage user roles."""
+    if request.method == 'POST':
+        user_id = request.form.get('user_id')
+        new_role = request.form.get('role')
+        db = get_user_db()
+        if user_id in db:
+            db[user_id]['role'] = new_role
+            save_user_db(db)
+            flash(f"User role updated successfully.", "success")
+        else:
+            flash("User not found.", "error")
+        return redirect(url_for('handover.settings'))
+
+    users_db = get_user_db()
+    users = [User.from_json(data) for data in users_db.values()]
+    return render_template('settings.html', users=users)
+
+
+# The rest of the routes file remains the same, but with @login_required decorator added
 @bp.route('/form/large-cluster')
+@login_required
 def large_cluster_start():
-    """Starts the multi-stage form for a Large Cluster."""
     session.clear()
     session['form_data'] = {}
     session['form_type'] = 'large_cluster'
     return redirect(url_for('handover.stage', stage_name=large_cluster_stage_order[0]))
-    
+
 @bp.route('/form/base-install', methods=['GET', 'POST'])
+@login_required
 def base_install_form():
-    """Handles the single-page form for a Base Install."""
     session['form_type'] = 'base_install'
     form_data = session.get('form_data', {})
 
     if request.method == 'POST':
-        # Flatten all fields from all sections into one list for processing
         all_fields = []
         for section in base_install_form_definition['sections']:
             all_fields.extend(section['fields'])
@@ -82,18 +108,15 @@ def base_install_form():
 
 
 @bp.route('/stage/<stage_name>', methods=['GET', 'POST'])
+@login_required
 def stage(stage_name):
-    """Renders a form stage for the Large Cluster form."""
     if stage_name not in large_cluster_stage_order:
         return "Stage not found", 404
-
     if 'form_data' not in session or session.get('form_type') != 'large_cluster':
-        # If session is invalid, restart the process
         return redirect(url_for('handover.index'))
 
     if request.method == 'POST':
         session['form_data'][stage_name] = {}
-
         for field in large_cluster_form_sections[stage_name]["fields"]:
             field_name = field['name']
             if field['type'] == 'dynamic_table':
@@ -120,16 +143,15 @@ def stage(stage_name):
                                 if file and file.filename and allowed_file(file.filename):
                                     filename = secure_filename(f"{sub_field_name}_{file.filename}")
                                     file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-                                    session['form_data'][stage_name][field_name][sub_field_name] = filename
+                                    form_data[field_name][sub_field_name] = filename
                         else:
-                            session['form_data'][stage_name][field_name][sub_field_name] = request.form.get(sub_field_name)
+                            form_data[field_name][sub_field_name] = request.form.get(sub_field_name)
             else:
                 session['form_data'][stage_name][field_name] = request.form.get(field_name)
         
         session.modified = True
         action = request.form.get('action', 'continue')
         current_index = large_cluster_stage_order.index(stage_name)
-
         if action == 'review':
              return redirect(url_for('handover.review'))
         elif action == 'back' and current_index > 0:
@@ -143,7 +165,6 @@ def stage(stage_name):
 
     current_index = large_cluster_stage_order.index(stage_name)
     form_data = session.get('form_data', {}).get(stage_name, {})
-    
     return render_template('index.html', 
                            stage_name=stage_name,
                            stage_data=large_cluster_form_sections[stage_name],
@@ -153,12 +174,11 @@ def stage(stage_name):
                            form_sections=large_cluster_form_sections)
 
 @bp.route('/review')
+@login_required
 def review():
-    """Displays all collected data for final review before submission."""
     if 'form_data' not in session or not session['form_data']:
         flash("No data to review. Please start from the beginning.", "warning")
         return redirect(url_for('handover.index'))
-        
     return render_template('review.html',
                            form_data=session.get('form_data', {}),
                            form_type=session.get('form_type'),
@@ -167,11 +187,10 @@ def review():
                            large_cluster_stage_order=large_cluster_stage_order)
 
 @bp.route('/submit_report', methods=['POST'])
+@login_required
 def submit_report():
-    """Saves the report to a file and redirects to a success page with the approval link."""
     if 'form_data' not in session:
         return redirect(url_for('handover.index'))
-
     handover_id = str(uuid.uuid4())
     submission_data = {
         "id": handover_id,
@@ -181,17 +200,15 @@ def submit_report():
         "form_type": session.get('form_type'),
         "approvals": {}
     }
-    
     filepath = os.path.join(current_app.config['SUBMISSIONS_FOLDER'], f"{handover_id}.json")
     with open(filepath, 'w') as f:
         json.dump(submission_data, f, indent=4)
-    
     session.clear()
     return redirect(url_for('handover.submission_success', handover_id=handover_id))
 
 @bp.route('/submission_success/<handover_id>')
+@login_required
 def submission_success(handover_id):
-    """Shows a success message with the unique link for the approval process."""
     approval_link = url_for('handover.approve', handover_id=handover_id, _external=True)
     print(f"--- SIMULATED EMAIL ---")
     print(f"To: itsm@cudoventures.com")
@@ -202,15 +219,13 @@ def submission_success(handover_id):
     return render_template('submission_success.html', approval_link=approval_link)
 
 @bp.route('/approve/<handover_id>', methods=['GET'])
+@login_required
 def approve(handover_id):
-    """The approval page for the service team."""
     filepath = os.path.join(current_app.config['SUBMISSIONS_FOLDER'], f"{handover_id}.json")
     if not os.path.exists(filepath):
         return "Submission not found", 404
-        
     with open(filepath, 'r') as f:
         submission_data = json.load(f)
-        
     return render_template('approval.html',
                            submission=submission_data,
                            large_cluster_form_sections=large_cluster_form_sections,
@@ -218,48 +233,40 @@ def approve(handover_id):
                            large_cluster_stage_order=large_cluster_stage_order)
 
 @bp.route('/process_approval/<handover_id>', methods=['POST'])
+@login_required
 def process_approval(handover_id):
-    """Processes the submitted approval form."""
     filepath = os.path.join(current_app.config['SUBMISSIONS_FOLDER'], f"{handover_id}.json")
     if not os.path.exists(filepath):
         return "Submission not found", 404
-
     with open(filepath, 'r') as f:
         submission_data = json.load(f)
-
     approvals = {}
     requires_more_info = False
-    
-    # Determine which form sections to check for approvals
     approval_sections = []
     if submission_data.get('form_type') == 'large_cluster':
         approval_sections = large_cluster_stage_order
     else: # base_install
         approval_sections = [s['title'] for s in base_install_form_definition['sections']]
-
     for section_key in approval_sections:
         approval_status = request.form.get(f'approval_{section_key}')
         notes = request.form.get(f'notes_{section_key}', '')
         if approval_status == 'More Information Needed' and not notes:
             flash(f"Please provide notes for '{section_key}' when requesting more information.", "warning")
             return redirect(url_for('handover.approve', handover_id=handover_id))
-
         approvals[section_key] = {'status': approval_status, 'notes': notes}
         if approval_status == 'More Information Needed':
             requires_more_info = True
-
     submission_data['approvals'] = approvals
     submission_data['last_updated_at'] = datetime.utcnow().isoformat()
     submitter_email = submission_data.get('form_data', {}).get('submitter_email', '[Submitter Email Not Found]')
-
     if requires_more_info:
         submission_data['status'] = 'REQUIRES_INFORMATION'
-        flash("The report has been marked as 'More Information Needed' and feedback has been saved. The original submitter will be notified.", "warning")
+        flash("The report has been marked as 'More Information Needed'. The original submitter will be notified.", "warning")
         print(f"--- SIMULATED EMAIL (MORE INFO) ---")
         print(f"To: {submitter_email}")
         print(f"From: itsm@cudoventures.com")
         print(f"Subject: More Information Required for Service Handover")
-        print(f"Please review the feedback and update the service handover document: {url_for('handover.approve', handover_id=handover_id, _external=True)}")
+        print(f"Please review the feedback: {url_for('handover.approve', handover_id=handover_id, _external=True)}")
         print(f"------------------------------------")
     else:
         submission_data['status'] = 'APPROVED'
@@ -270,14 +277,21 @@ def process_approval(handover_id):
         print(f"Subject: Service Handover Approved")
         print(f"The service handover has been approved: {url_for('handover.approve', handover_id=handover_id, _external=True)}")
         print(f"---------------------------------")
-
     with open(filepath, 'w') as f:
         json.dump(submission_data, f, indent=4)
-
     return redirect(url_for('handover.approve', handover_id=handover_id))
 
-
 @bp.route('/uploads/<filename>')
+@login_required
 def uploaded_file(filename):
-    """Serves uploaded files."""
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+
+@bp.route('/debug-session')
+def debug_session():
+    from flask_login import current_user
+    return {
+        'authenticated': current_user.is_authenticated,
+        'user_id': getattr(current_user, 'id', None),
+        'session_keys': list(session.keys()),
+        'session_permanent': session.permanent
+    }

@@ -1,0 +1,43 @@
+{
+    "id": "58f9a0d8-bd98-456b-a581-1ead03b09b67",
+    "status": "APPROVED",
+    "submitted_at": "2025-07-10T19:02:08.737435",
+    "form_data": {
+        "customer_name": "",
+        "submitter_email": "",
+        "sales_reference": "",
+        "salesforce_link": "",
+        "version": "",
+        "date_prepared": "",
+        "prepared_by": "",
+        "project_reference": "",
+        "brief_description": "",
+        "support_type": "",
+        "service_hours_sla": "",
+        "customer_contacts": "",
+        "slack_group_url": "",
+        "supplier_details": [],
+        "deployment_location": {
+            "selection": "3rd Party",
+            "baremetal_supplier": ""
+        },
+        "component_overview": [],
+        "public_ip_address": "",
+        "credentials_management": [],
+        "build_method": [],
+        "build_config_links": [],
+        "last_os_patch_date": ""
+    },
+    "form_type": "base_install",
+    "approvals": {
+        "Service Introduction & Overview": {
+            "status": "Approved",
+            "notes": "Check this"
+        },
+        "Infrastructure & Configuration": {
+            "status": "Approved",
+            "notes": ""
+        }
+    },
+    "last_updated_at": "2025-07-10T19:02:41.373999"
+}

@@ -1,0 +1,121 @@
+{
+    "id": "ba5d0802-8627-4213-87b8-4fd31dff055f",
+    "status": "APPROVED",
+    "submitted_at": "2025-07-10T19:03:56.995289",
+    "form_data": {
+        "stage1": {
+            "customer_name": "",
+            "submitter_email": "",
+            "sales_reference": "",
+            "salesforce_link": "",
+            "version": "",
+            "date_prepared": "",
+            "prepared_by": "",
+            "project_reference": "",
+            "brief_description": "",
+            "support_type": "",
+            "service_hours_sla": "",
+            "customer_contacts": "",
+            "slack_group_url": "",
+            "supplier_details": []
+        },
+        "stage2": {
+            "component_overview": [],
+            "vlan_details": [],
+            "subnet_details": [],
+            "gateway_details": [],
+            "firewall_rule_details": [],
+            "hardware_model_details": [],
+            "warranty_details": []
+        },
+        "stage3": {
+            "netbox_link": "",
+            "cmdb_data_verified_by": "",
+            "build_method": [],
+            "build_config_links": [],
+            "last_os_patch_date": "",
+            "upload_build_docs": {
+                "selection": "Yes"
+            },
+            "key_config_files": [],
+            "credentials_management": []
+        },
+        "stage4": {
+            "service_procedures": [],
+            "installed_services": ""
+        },
+        "stage5": {
+            "monitoring_tool": {
+                "selection": "None"
+            },
+            "key_log_files": [],
+            "common_issues": "",
+            "diagnostic_tools": "",
+            "escalation_paths": ""
+        },
+        "stage6": {
+            "firewall_summary": "",
+            "firewall_config_link": "",
+            "user_account_method": {
+                "selection": "None"
+            },
+            "ssl_cert_info": [],
+            "related_urls": "",
+            "known_issues": "",
+            "verification_checklist": [
+                {
+                    "Item": "Knowledge Transfer",
+                    "Date Given": "",
+                    "Meeting/Session Link": "",
+                    "By Whom": ""
+                },
+                {
+                    "Item": "Default Passwords Changed",
+                    "Date Given": "",
+                    "Meeting/Session Link": "",
+                    "By Whom": ""
+                },
+                {
+                    "Item": "Service Team Access Confirmed",
+                    "Date Given": "",
+                    "Meeting/Session Link": "",
+                    "By Whom": ""
+                },
+                {
+                    "Item": "Monitoring Alerts Tested",
+                    "Date Given": "",
+                    "Meeting/Session Link": "",
+                    "By Whom": ""
+                }
+            ]
+        }
+    },
+    "form_type": "large_cluster",
+    "approvals": {
+        "stage1": {
+            "status": "Approved",
+            "notes": ""
+        },
+        "stage2": {
+            "status": "Approved",
+            "notes": ""
+        },
+        "stage3": {
+            "status": "Approved",
+            "notes": ""
+        },
+        "stage4": {
+            "status": "Approved",
+            "notes": ""
+        },
+        "stage5": {
+            "status": "Approved",
+            "notes": ""
+        },
+        "stage6": {
+            "status": "Approved",
+            "notes": "As a question here"
+        }
+    },
+    "last_updated_at": "2025-07-10T19:04:25.422615"
+}

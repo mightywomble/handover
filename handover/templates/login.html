@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
+  <div class="sm:mx-auto sm:w-full sm:max-w-sm">
+    <h2 class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white">Sign in to your account</h2>
+  </div>
+
+  <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+    <div class="space-y-6">
+      <a href="{{ url_for('google.login') }}" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+        Sign in with Google
+      </a>
+    </div>
+
+    <!-- Debug Info Section -->
+    <div x-data="{ open: false }" class="mt-8">
+      <div class="text-center">
+        <button @click="open = !open" type="button" class="text-xs text-gray-500 hover:text-gray-400">
+          <span x-show="!open">Show Debug Info</span>
+          <span x-show="open" x-cloak>Hide Debug Info</span>
+        </button>
+      </div>
+
+      <div x-show="open" x-cloak class="mt-4 p-4 bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-400">
+        <h3 class="font-bold text-gray-200 mb-2">OAuth Debug Information</h3>
+        <div class="space-y-2">
+          <div>
+            <p class="font-semibold">SERVER_NAME from .env:</p>
+            <p class="font-mono p-2 bg-gray-900 rounded">{{ debug_info.SERVER_NAME_from_env or 'NOT FOUND' }}</p>
+          </div>
+          <div>
+            <p class="font-semibold">Generated Redirect URL for Google:</p>
+            <p class="font-mono p-2 bg-gray-900 rounded break-all">{{ debug_info.Constructed_Redirect_URL or 'NOT CONSTRUCTED (SERVER_NAME missing?)' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- End Debug Info Section -->
+
+  </div>
+</div>
+{% endblock %}

@@ -1,7 +1,21 @@
 # handover_app/utils.py
-from flask import request
+from flask import request, flash, redirect, url_for
+from flask_login import current_user
+from functools import wraps
 
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xls', 'xlsx'}
+
+def admin_required(f):
+    """
+    A decorator to ensure a user is logged in and has the 'Admin' role.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != "Admin":
+            flash("You do not have permission to access this page.", "warning")
+            return redirect(url_for("handover.index"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def allowed_file(filename):
     """Checks if the file extension is allowed."""

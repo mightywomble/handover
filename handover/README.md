@@ -90,7 +90,13 @@ mkdir -p uploads submissions data
 ## Configuration
 
 ### 1. Environment Variables
-Create a `.env` file in the project root:
+Copy the example environment file and configure it:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your actual values:
 
 ```bash
 # Flask Configuration

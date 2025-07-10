@@ -6,75 +6,40 @@
     <p class="text-gray-400 mt-1">Please verify all details before final submission.</p>
 </header>
 <main class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg space-y-8">
-    {% for stage_key in stage_order %}
-        {% if form_data.get(stage_key) %}
+    {# FIX: Add logic to handle both form types #}
+    {% if form_type == 'large_cluster' %}
+        {% for stage_key in large_cluster_stage_order %}
+            {% if form_data.get(stage_key) %}
+                <section>
+                    <div class="flex justify-between items-center border-b-2 border-gray-700 pb-2 mb-4">
+                        <h2 class="text-xl font-semibold text-white">{{ large_cluster_form_sections[stage_key].title }}</h2>
+                        <a href="{{ url_for('handover.stage', stage_name=stage_key) }}" class="text-sm font-medium text-indigo-400 hover:text-indigo-300">Edit</a>
+                    </div>
+                    <dl class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+                        {% for field in large_cluster_form_sections[stage_key].fields %}
+                            {% set value = form_data[stage_key].get(field.name) %}
+                            {% include 'field_display.html' %}
+                        {% endfor %}
+                    </dl>
+                </section>
+            {% endif %}
+        {% endfor %}
+    {% else %} {# Base Install #}
+        {% for section in base_install_form_definition.sections %}
             <section>
                 <div class="flex justify-between items-center border-b-2 border-gray-700 pb-2 mb-4">
-                    <h2 class="text-xl font-semibold text-white">{{ form_sections[stage_key].title }}</h2>
-                    <a href="{{ url_for('handover.stage', stage_name=stage_key) }}" class="text-sm font-medium text-indigo-400 hover:text-indigo-300">Edit</a>
+                    <h2 class="text-xl font-semibold text-white">{{ section.title }}</h2>
+                    <a href="{{ url_for('handover.base_install_form') }}" class="text-sm font-medium text-indigo-400 hover:text-indigo-300">Edit</a>
                 </div>
                 <dl class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
-                    {% for field in form_sections[stage_key].fields %}
-                        {% set value = form_data[stage_key].get(field.name) %}
-                        {% if value %}
-                            <div class="py-2 {% if field.type in ['textarea', 'dynamic_table'] or (field.type == 'conditional_select' and value.get('selection') in field.conditions) %}md:col-span-3{% else %}md:col-span-1{% endif %}">
-                                <dt class="text-sm font-medium text-gray-400">{{ field.label }}</dt>
-                                {% if field.type == 'dynamic_table' and value %}
-                                    <dd class="mt-1 text-sm text-gray-300">
-                                        <div class="overflow-x-auto mt-2">
-                                            <table class="min-w-full">
-                                                <thead class="border-b border-gray-600">
-                                                    <tr>
-                                                        {% for col in field.columns %}
-                                                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase">{{ col }}</th>
-                                                        {% endfor %}
-                                                    </tr>
-                                                </thead>
-                                                <tbody class="divide-y divide-gray-600">
-                                                    {% for row in value %}
-                                                        <tr>
-                                                            {% for col_name in field.columns %}
-                                                                <td class="px-3 py-2 whitespace-nowrap text-sm">{{ row.get(col_name, '') }}</td>
-                                                            {% endfor %}
-                                                        </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </dd>
-                                {% elif field.type == 'conditional_select' %}
-                                    <dd class="mt-1 text-sm text-gray-300">{{ value.selection }}</dd>
-                                    {% if value.selection in field.conditions %}
-                                        <div class="mt-2 pl-4 border-l-2 border-gray-700">
-                                        {% for sub_field in field.conditions[value.selection] %}
-                                            {% set sub_value = value.get(sub_field.name) %}
-                                            {% if sub_value %}
-                                                <dt class="text-sm font-medium text-gray-500 mt-2">{{ sub_field.label }}</dt>
-                                                {% if sub_field.type == 'file' %}
-                                                    <dd class="mt-1 text-sm text-indigo-400 hover:text-indigo-300"><a href="{{ url_for('handover.uploaded_file', filename=sub_value) }}" target="_blank">{{ sub_value }}</a></dd>
-                                                {% else %}
-                                                    <dd class="mt-1 text-sm text-gray-300 whitespace-pre-wrap">{{ sub_value }}</dd>
-                                                {% endif %}
-                                            {% endif %}
-                                        {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                {% elif field.type == 'file' %}
-                                    <dd class="mt-1 text-sm text-indigo-400 hover:text-indigo-300"><a href="{{ url_for('handover.uploaded_file', filename=value) }}" target="_blank">{{ value }}</a></dd>
-                                {% elif field.type == 'textarea' %}
-                                    <dd class="mt-1 text-sm text-gray-300 whitespace-pre-wrap">{{ value }}</dd>
-                                {% elif field.type == 'multiselect' %}
-                                    <dd class="mt-1 text-sm text-gray-300">{{ value|join(', ') }}</dd>
-                                {% else %}
-                                    <dd class="mt-1 text-sm text-gray-300">{{ value }}</dd>
-                                {% endif %}
-                            </div>
-                        {% endif %}
+                    {% for field in section.fields %}
+                        {% set value = form_data.get(field.name) %}
+                        {% include 'field_display.html' %}
                     {% endfor %}
                 </dl>
             </section>
-        {% endif %}
-    {% endfor %}
+        {% endfor %}
+    {% endif %}
 </main>
 <div class="mt-8 bg-gray-800/50 border border-gray-700 p-6 rounded-lg shadow-lg">
     <h3 class="text-lg font-medium leading-6 text-white">Final Submission</h3>

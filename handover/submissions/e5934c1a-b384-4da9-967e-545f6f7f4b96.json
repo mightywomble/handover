@@ -1,0 +1,32 @@
+{
+    "id": "e5934c1a-b384-4da9-967e-545f6f7f4b96",
+    "status": "PENDING_APPROVAL",
+    "submitted_at": "2025-07-10T17:24:31.619552",
+    "form_data": {
+        "customer_name": "",
+        "submitter_email": "",
+        "sales_reference": "",
+        "salesforce_link": "",
+        "version": "",
+        "date_prepared": "",
+        "prepared_by": "",
+        "project_reference": "",
+        "brief_description": "",
+        "support_type": "",
+        "service_hours_sla": "",
+        "customer_contacts": "",
+        "slack_group_url": "",
+        "supplier_details": [],
+        "deployment_location": {
+            "selection": "Cudo Compute"
+        },
+        "component_overview": [],
+        "public_ip_address": "",
+        "credentials_management": [],
+        "build_method": [],
+        "build_config_links": [],
+        "last_os_patch_date": ""
+    },
+    "form_type": "base_install",
+    "approvals": {}
+}

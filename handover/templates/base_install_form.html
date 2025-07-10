@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_definition.title }}{% endblock %}
+
+{% block content %}
+<header class="mb-10">
+    <h1 class="text-3xl font-bold text-white">{{ form_definition.title }}</h1>
+    <p class="text-gray-400 mt-1">Complete all sections for the Base Install handover.</p>
+</header>
+
+<form action="{{ url_for('handover.base_install_form') }}" method="post" enctype="multipart/form-data">
+    <div class="space-y-12">
+        {% for section in form_definition.sections %}
+        <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">{{ section.title }}</h2>
+            
+            {# Pass the section's fields to the form_template #}
+            {% with stage_data=section, form_type='base_install' %}
+                {% include 'form_template.html' %}
+            {% endwith %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-8 pt-5 border-t border-gray-700">
+        <div class="flex justify-end">
+            <button type="submit" name="action" value="review" class="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Save and Review
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}

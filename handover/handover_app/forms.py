@@ -1,16 +1,15 @@
 # handover_app/forms.py
 
-# Defines the order of the stages
-stage_order = ["stage1", "stage2", "stage3", "stage4", "stage5", "stage6"]
+# --- Large Cluster Form Definition (Existing Stages) ---
+large_cluster_stage_order = ["stage1", "stage2", "stage3", "stage4", "stage5", "stage6"]
 
-# Defines the content of each stage
-form_sections = {
+large_cluster_form_sections = {
     "stage1": {
         "title": "Service Introduction & Overview",
         "fields": [
-            {"name": "service_name", "label": "Customer Name", "type": "text", "placeholder": "e.g., Example Corp"},
+            {"name": "customer_name", "label": "Customer Name", "type": "text", "placeholder": "e.g., Example Corp"},
             {"name": "submitter_email", "label": "Your Email Address", "type": "text", "placeholder": "e.g., your.name@example.com (for approval notifications)"},
-            {"name": "service_reference", "label": "Sales Reference", "type": "text", "placeholder": "e.g., SVC-WEBCL"},
+            {"name": "sales_reference", "label": "Sales Reference", "type": "text", "placeholder": "e.g., SVC-WEBCL"},
             {"name": "salesforce_link", "label": "Salesforce Link", "type": "text", "placeholder": "e.g., https://example.my.salesforce.com/..."},
             {"name": "version", "label": "Version", "type": "text", "placeholder": "e.g., 1.0"},
             {"name": "date_prepared", "label": "Date Prepared", "type": "date"},
@@ -81,4 +80,43 @@ form_sections = {
             {"name": "verification_checklist", "label": "Handover Verification Checklist", "type": "dynamic_table", "columns": ["Item", "Date Given", "Meeting/Session Link", "By Whom"], "predefined_rows": ["Knowledge Transfer", "Default Passwords Changed", "Service Team Access Confirmed", "Monitoring Alerts Tested"], "placeholders": {"Date Given": "e.g., 2025-07-10", "Meeting/Session Link": "e.g., https://teams.link/...", "By Whom": "e.g., John Smith"}},
         ]
     }
+}
+
+
+# --- Base Install Form Definition (New) ---
+base_install_form_definition = {
+    "title": "Base Install Handover",
+    "sections": [
+        {
+            "title": "Service Introduction & Overview",
+            "fields": [
+                {"name": "customer_name", "label": "Customer Name", "type": "text", "placeholder": "e.g., Example Corp"},
+                {"name": "submitter_email", "label": "Your Email Address", "type": "text", "placeholder": "e.g., your.name@example.com (for approval notifications)"},
+                {"name": "sales_reference", "label": "Sales Reference", "type": "text", "placeholder": "e.g., SVC-WEBCL"},
+                {"name": "salesforce_link", "label": "Salesforce Link", "type": "text", "placeholder": "e.g., https://example.my.salesforce.com/..."},
+                {"name": "version", "label": "Version", "type": "text", "placeholder": "e.g., 1.0"},
+                {"name": "date_prepared", "label": "Date Prepared", "type": "date"},
+                {"name": "prepared_by", "label": "Handover Prepared By (Engineer Name)", "type": "text", "placeholder": "e.g., Jane Doe"},
+                {"name": "project_reference", "label": "Project Reference", "type": "text", "placeholder": "e.g., PRJ-2025-04-WEBCL"},
+                {"name": "brief_description", "label": "Brief Description", "type": "textarea", "placeholder": "A short description of what the service/system does."},
+                {"name": "support_type", "label": "Support Type", "type": "select", "options": ["", "Basic", "Core Support", "Managed Service", "Other"]},
+                {"name": "service_hours_sla", "label": "Service Hours / SLA", "type": "text", "placeholder": "e.g., 24x7, Business Hours 9-5 Mon-Fri"},
+                {"name": "customer_contacts", "label": "Customer Contacts", "type": "textarea", "placeholder": "List main user groups or departments"},
+                {"name": "slack_group_url", "label": "Slack Group URL", "type": "text", "placeholder": "e.g., https://app.slack.com/client/T0.../C0..."},
+                {"name": "supplier_details", "label": "Supplier Details", "type": "dynamic_table", "columns": ["Supplier Name", "Support Email", "Contract Number", "Notes"], "placeholders": {"Supplier Name": "e.g., Dell", "Support Email": "e.g., support@dell.com", "Contract Number": "e.g., 123-456-789"}},
+                {"name": "deployment_location", "label": "Deployment Location", "type": "conditional_select", "options": ["Cudo Compute", "3rd Party"], "conditions": {"3rd Party": [{"name": "baremetal_supplier", "label": "Baremetal Supplier Name:", "type": "text"}]}},
+            ]
+        },
+        {
+            "title": "Infrastructure & Configuration",
+            "fields": [
+                {"name": "component_overview", "label": "Component Overview", "type": "dynamic_table", "columns": ["Component Type", "Hostname / Identifier", "IP Address", "OS Version", "Last Patch Date"], "options": {"Component Type": ["Server", "Network", "Storage", "Rack", "Cable", "Other"]}, "placeholders": {"Hostname / Identifier": "e.g., web-prod-01", "IP Address": "e.g., 10.1.1.10"}},
+                {"name": "public_ip_address", "label": "Public IP Address", "type": "text", "placeholder": "e.g., 8.8.8.8"},
+                {"name": "credentials_management", "label": "Credentials & Secrets Management", "type": "dynamic_table", "columns": ["Item", "Location", "Search For / Link"], "options": {"Location": ["1Password", "HashiCorp Vault", "CyberArk", "Other"]}, "placeholders": {"Item": "e.g., Web App DB Password", "Search For / Link": "e.g., 'PROD Web Server Root' or path/to/secret"}},
+                {"name": "build_method", "label": "Build Method", "type": "multiselect", "options": ["Manual", "Ansible", "Terraform", "Other"]},
+                {"name": "build_config_links", "label": "Link to Build Config", "type": "dynamic_table", "columns": ["Item", "Github Link"], "placeholders": {"Item": "e.g., Web Server Playbook", "Github Link": "e.g., https://github.com/user/repo/playbook.yml"}},
+                {"name": "last_os_patch_date", "label": "Last OS Patch Date", "type": "text", "placeholder": "e.g., When was sudo apt-get update run last?"},
+            ]
+        }
+    ]
 }

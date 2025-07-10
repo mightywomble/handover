@@ -1,0 +1,54 @@
+{% if value %}
+    <div class="py-2 {% if field.type in ['textarea', 'dynamic_table'] or (field.type == 'conditional_select' and value.get('selection') in field.conditions) %}md:col-span-3{% else %}md:col-span-1{% endif %}">
+        <dt class="text-sm font-medium text-gray-400">{{ field.label }}</dt>
+        {% if field.type == 'dynamic_table' and value %}
+            <dd class="mt-1 text-sm text-gray-300">
+                <div class="overflow-x-auto mt-2">
+                    <table class="min-w-full">
+                        <thead class="border-b border-gray-600">
+                            <tr>
+                                {% for col in field.columns %}
+                                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase">{{ col }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-600">
+                            {% for row in value %}
+                                <tr>
+                                    {% for col_name in field.columns %}
+                                        <td class="px-3 py-2 whitespace-nowrap text-sm">{{ row.get(col_name, '') }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </dd>
+        {% elif field.type == 'conditional_select' %}
+            <dd class="mt-1 text-sm text-gray-300">{{ value.selection }}</dd>
+            {% if value.selection in field.conditions %}
+                <div class="mt-2 pl-4 border-l-2 border-gray-700">
+                {% for sub_field in field.conditions[value.selection] %}
+                    {% set sub_value = value.get(sub_field.name) %}
+                    {% if sub_value %}
+                        <dt class="text-sm font-medium text-gray-500 mt-2">{{ sub_field.label }}</dt>
+                        {% if sub_field.type == 'file' %}
+                            <dd class="mt-1 text-sm text-indigo-400 hover:text-indigo-300"><a href="{{ url_for('handover.uploaded_file', filename=sub_value) }}" target="_blank">{{ sub_value }}</a></dd>
+                        {% else %}
+                            <dd class="mt-1 text-sm text-gray-300 whitespace-pre-wrap">{{ sub_value }}</dd>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% elif field.type == 'file' %}
+            <dd class="mt-1 text-sm text-indigo-400 hover:text-indigo-300"><a href="{{ url_for('handover.uploaded_file', filename=value) }}" target="_blank">{{ value }}</a></dd>
+        {% elif field.type == 'textarea' %}
+            <dd class="mt-1 text-sm text-gray-300 whitespace-pre-wrap">{{ value }}</dd>
+        {% elif field.type == 'multiselect' %}
+            <dd class="mt-1 text-sm text-gray-300">{{ value|join(', ') }}</dd>
+        {% else %}
+            <dd class="mt-1 text-sm text-gray-300">{{ value }}</dd>
+        {% endif %}
+    </div>
+{% endif %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Submission Successful{% endblock %}
+{% block content %}
+<div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg text-center mt-10">
+    <svg class="mx-auto h-12 w-12 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <h2 class="mt-4 text-2xl font-bold text-white">Submission Successful!</h2>
+    <p class="mt-2 text-gray-400">Your handover report has been submitted for approval. An email has been sent to the service team.</p>
+    <div class="mt-6">
+        <p class="text-sm text-gray-500">For your records, the unique approval link is:</p>
+        <div class="mt-2 p-3 bg-gray-800 rounded-md">
+            <a href="{{ approval_link }}" class="text-indigo-400 break-all">{{ approval_link }}</a>
+        </div>
+    </div>
+    <div class="mt-8">
+        <a href="{{ url_for('handover.index') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
+            Create a New Handover
+        </a>
+    </div>
+</div>
+{% endblock %}

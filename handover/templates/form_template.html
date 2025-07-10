@@ -1,0 +1,146 @@
+<form action="{{ url_for('handover.stage', stage_name=stage_name) }}" method="post" enctype="multipart/form-data">
+    <div class="space-y-8">
+        {% for field in stage_data.fields %}
+            <div x-data='{{ '{"selection": "' ~ (form_data.get(field.name, {}).get('selection', '') or field.options[0]) ~ '"}' if field.type == 'conditional_select' else '{}' }}'>
+                <label for="{{ field.name }}" class="block text-sm font-bold text-gray-300 mb-2">{{ field.label }}</label>
+                
+                {% if field.type in ['text', 'date'] %}
+                    <input type="{{ field.type }}" id="{{ field.name }}" name="{{ field.name }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="{{ field.placeholder or '' }}" value="{{ form_data.get(field.name, '') }}">
+                
+                {% elif field.type == 'textarea' %}
+                    <textarea id="{{ field.name }}" name="{{ field.name }}" rows="4" class="form-textarea mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="{{ field.placeholder or '' }}">{{ form_data.get(field.name, '') }}</textarea>
+                
+                {% elif field.type == 'select' %}
+                    <select id="{{ field.name }}" name="{{ field.name }}" class="form-select mt-1 block w-full rounded-md shadow-sm sm:text-sm">
+                        {% for option in field.options %}
+                            <option class="bg-gray-800 text-gray-300" {% if form_data.get(field.name) == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+
+                {% elif field.type == 'multiselect' %}
+                    <select id="{{ field.name }}" name="{{ field.name }}" multiple class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" style="height: 100px;">
+                        {% for option in field.options %}
+                            <option class="bg-gray-800 text-gray-300" value="{{ option }}" {% if option in form_data.get(field.name, []) %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple.</p>
+
+                {% elif field.type == 'file' %}
+                    <input type="file" id="{{ field.name }}" name="{{ field.name }}" class="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-500/10 file:text-indigo-300 hover:file:bg-indigo-500/20">
+                    {% if form_data.get(field.name) %}
+                        <p class="text-sm text-gray-400 mt-2">Current file: <a href="{{ url_for('handover.uploaded_file', filename=form_data.get(field.name)) }}" class="text-indigo-400" target="_blank">{{ form_data.get(field.name) }}</a></p>
+                    {% endif %}
+
+                {% elif field.type == 'conditional_select' %}
+                    <select id="{{ field.name }}" name="{{ field.name }}" x-model="selection" class="form-select mt-1 block w-full rounded-md shadow-sm sm:text-sm">
+                        {% for option in field.options %}
+                            <option class="bg-gray-800 text-gray-300" value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="mt-4 space-y-4 border-l-2 border-gray-700 pl-4">
+                    {% for condition, sub_fields in field.conditions.items() %}
+                        <div x-show="selection === '{{ condition }}'" x-cloak>
+                        {% for sub_field in sub_fields %}
+                            <label class="block text-sm font-medium text-gray-400">{{ sub_field.label }}</label>
+                            {% if sub_field.type == 'file' %}
+                                <input type="file" name="{{ sub_field.name }}" class="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-500/10 file:text-indigo-300 hover:file:bg-indigo-500/20">
+                                {% set sub_field_value = form_data.get(field.name, {}).get(sub_field.name) %}
+                                {% if sub_field_value %}
+                                   <p class="text-sm text-gray-400 mt-2">Current file: <a href="{{ url_for('handover.uploaded_file', filename=sub_field_value) }}" class="text-indigo-400" target="_blank">{{ sub_field_value }}</a></p>
+                                {% endif %}
+                            {% elif sub_field.type == 'textarea' %}
+                                <textarea name="{{ sub_field.name }}" class="form-textarea mt-1 block w-full rounded-md shadow-sm sm:text-sm">{{ form_data.get(field.name, {}).get(sub_field.name, '') }}</textarea>
+                            {% else %}
+                                <input type="text" name="{{ sub_field.name }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" value="{{ form_data.get(field.name, {}).get(sub_field.name, '') }}">
+                            {% endif %}
+                        {% endfor %}
+                        </div>
+                    {% endfor %}
+                    </div>
+
+                {% elif field.type == 'dynamic_table' %}
+                    <script>
+                        function {{ field.name }}_data() {
+                            return {
+                                rows: {{ form_data.get(field.name, []) | tojson | safe }},
+                                predefined: {{ field.get('predefined_rows', []) | tojson | safe }},
+                                columns: {{ field.columns | tojson | safe }},
+                                addRow() {
+                                    let newRow = {};
+                                    this.columns.forEach(col => { newRow[col] = ''; });
+                                    this.rows.push(newRow);
+                                },
+                                initComponent() {
+                                    if (this.rows.length === 0) {
+                                        if (this.predefined.length > 0) {
+                                            this.predefined.forEach(item => {
+                                                let newRow = { 'Item': item };
+                                                this.columns.slice(1).forEach(col => newRow[col] = '');
+                                                this.rows.push(newRow);
+                                            });
+                                        } else {
+                                            this.addRow();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    </script>
+                    <div x-data="{{ field.name }}_data()" x-init="initComponent()">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="border-b border-gray-700">
+                                    <tr>
+                                        {% for col in field.columns %}
+                                            <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{{ col }}</th>
+                                        {% endfor %}
+                                        <th scope="col" class="relative px-3 py-2"><span class="sr-only">Delete</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-700">
+                                    <template x-for="(row, index) in rows" :key="index">
+                                        <tr class="hover:bg-gray-700/50">
+                                            {% for col_name in field.columns %}
+                                                {% set input_name = field.name + '_' + col_name.lower().replace(' / ', '_').replace(' ', '_').replace('(', '').replace(')', '') + '[]' %}
+                                                {% set placeholder_text = field.placeholders.get(col_name, '') if field.placeholders else '' %}
+                                                <td class="px-3 py-2 whitespace-nowrap">
+                                                    {% if field.options and col_name in field.options %}
+                                                        <select :name="input_name" class="table-select" x-model="row['{{ col_name }}']">
+                                                            <option class="bg-gray-800 text-gray-300" value="" disabled>Select...</option>
+                                                            {% for option in field.options[col_name] %}
+                                                                <option class="bg-gray-800 text-gray-300" value="{{ option }}">{{ option }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    {% else %}
+                                                        <input type="text" :name="input_name" class="table-input" x-model="row['{{ col_name }}']" 
+                                                               :readonly="predefined.includes(row['Item']) && '{{ col_name }}' === 'Item'"
+                                                               placeholder="{{ placeholder_text }}">
+                                                    {% endif %}
+                                                </td>
+                                            {% endfor %}
+                                            <td class="px-3 py-2">
+                                                <button type="button" @click="rows.splice(index, 1)" class="text-red-500 hover:text-red-400 p-1" x-show="rows.length > 1">X</button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" @click="addRow()" class="mt-2 text-sm font-semibold text-indigo-400 hover:text-indigo-300">+ Add Row</button>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    <div class="mt-8 pt-5 border-t border-gray-700">
+        <div class="flex justify-between items-center">
+            <button type="submit" name="action" value="back" class="inline-flex justify-center py-2 px-4 border border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600 disabled:opacity-50" {% if current_stage_index == 0 %}disabled{% endif %}>Back</button>
+            <div class="flex items-center space-x-3">
+                <button type="submit" name="action" value="review" class="inline-flex justify-center py-2 px-4 border border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-300 bg-gray-700 hover:bg-gray-600">Review</button>
+                <button type="submit" name="action" value="continue" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    {{ 'Save and Review' if current_stage_index == stage_order|length - 1 else 'Save and Continue' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</form>

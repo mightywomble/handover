@@ -137,10 +137,16 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-6 pt-5 border-t border-gray-700 flex justify-end">
-                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                        Save Settings
-                    </button>
+                <div class="mt-6 pt-5 border-t border-gray-700">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="enable_login_debug" name="enable_login_debug" class="form-checkbox h-4 w-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500" {% if enable_login_debug %}checked{% endif %}>
+                            <label for="enable_login_debug" class="ml-2 block text-sm text-gray-400">Enable Login Debug</label>
+                        </div>
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                            Save Settings
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>

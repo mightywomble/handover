@@ -428,29 +428,33 @@ def settings():
     """Shows the user management and settings page."""
     users = User.query.all()
     
-    # Get hostname from the live app config
-    app_hostname = current_app.config.get('APP_HOSTNAME', '')
-    google_redirect_uri = f"{app_hostname.rstrip('/')}{url_for('auth.google_authorize')}"
+    # Use url_for with _external=True to respect proxy headers for the redirect URI
+    google_redirect_uri = url_for('auth.google_authorize', _external=True)
     
-    # Explicitly pass the config values needed by the template to avoid UndefinedError
+    # The hostname for display should still come from the config for consistency in the UI
+    app_hostname = current_app.config.get('APP_HOSTNAME', '')
+    
     google_client_id = current_app.config.get('GOOGLE_CLIENT_ID', '')
     google_client_secret = current_app.config.get('GOOGLE_CLIENT_SECRET', '')
+    enable_login_debug = current_app.config.get('ENABLE_LOGIN_DEBUG') == 'true'
     
     return render_template('settings.html', 
                            users=users,
                            google_redirect_uri=google_redirect_uri,
                            app_hostname=app_hostname,
                            google_client_id=google_client_id,
-                           google_client_secret=google_client_secret)
+                           google_client_secret=google_client_secret,
+                           enable_login_debug=enable_login_debug)
 
 @bp.route('/settings/update', methods=['POST'])
 @login_required
 def update_settings():
-    """Updates application settings like the hostname and Google SSO credentials."""
+    """Updates application settings."""
     settings_to_update = {
         'APP_HOSTNAME': request.form.get('app_hostname'),
         'GOOGLE_CLIENT_ID': request.form.get('google_client_id'),
-        'GOOGLE_CLIENT_SECRET': request.form.get('google_client_secret')
+        'GOOGLE_CLIENT_SECRET': request.form.get('google_client_secret'),
+        'ENABLE_LOGIN_DEBUG': 'true' if 'enable_login_debug' in request.form else 'false'
     }
 
     try:
@@ -458,18 +462,14 @@ def update_settings():
             setting = Setting.query.filter_by(key=key).first()
             if setting:
                 setting.value = value
-                # Update the config of the running app immediately
                 current_app.config[key] = value
             else:
-                # This case should ideally not be hit if defaults are created properly
                 new_setting = Setting(key=key, value=value)
                 db.session.add(new_setting)
                 current_app.config[key] = value
 
         db.session.commit()
         
-        # After updating secrets, the OAuth client needs to be re-registered
-        # This is a simplified approach. A more robust solution might involve a dedicated function.
         oauth = current_app.config['oauth']
         oauth.register(
             name='google',
@@ -477,7 +477,7 @@ def update_settings():
             client_secret=current_app.config.get('GOOGLE_CLIENT_SECRET'),
             server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
             client_kwargs={'scope': 'openid email profile'},
-            overwrite=True # Overwrite the existing client
+            overwrite=True
         )
 
         flash('Settings updated successfully.', 'success')

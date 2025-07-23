@@ -7,114 +7,150 @@
     <p class="text-gray-400 mt-1">Manage users, API keys, and SSO configuration.</p>
 </header>
 
-<div class="space-y-12">
-    <!-- Google SSO Configuration -->
-    <form action="{{ url_for('handover.update_settings') }}" method="post">
+<div class="grid grid-cols-1 md:grid-cols-5 gap-8">
+
+    <!-- Left Column (40%) -->
+    <div class="md:col-span-2 space-y-12">
+        <!-- User Management -->
         <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
-            <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">Google SSO & App Configuration</h2>
-            <div class="space-y-4">
-                <div>
-                    <label for="app_hostname" class="block text-sm font-bold text-gray-300">Application Hostname (Base URL)</label>
-                    <input type="text" name="app_hostname" id="app_hostname" value="{{ app_hostname }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="e.g., https://myapp.example.com">
-                </div>
-                 <div>
-                    <label for="google_client_id" class="block text-sm font-bold text-gray-300">Google Client ID</label>
-                    <input type="text" name="google_client_id" id="google_client_id" value="{{ google_client_id }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="Enter your Google Client ID">
-                </div>
-                <div>
-                    <label for="google_client_secret" class="block text-sm font-bold text-gray-300">Google Client Secret</label>
-                    <input type="password" name="google_client_secret" id="google_client_secret" value="{{ google_client_secret }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="Enter your Google Client Secret">
-                </div>
-            </div>
-            <div class="mt-8 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                <p class="text-sm text-gray-400 mb-2">
-                    Use the following URLs in your Google Cloud Console for the OAuth 2.0 Client ID setup.
-                </p>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-300 uppercase">Authorized JavaScript origins</label>
-                        <div class="mt-1 p-2 bg-gray-800 rounded-md">
-                            <code class="text-indigo-300 font-mono text-sm">{{ app_hostname }}</code>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-300 uppercase">Authorized redirect URIs</label>
-                         <div class="mt-1 p-2 bg-gray-800 rounded-md">
-                            <code class="text-indigo-300 font-mono text-sm">{{ google_redirect_uri }}</code>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-6 pt-5 border-t border-gray-700 flex justify-end">
-                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                    Save Settings
-                </button>
+            <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">User Management</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full w-full table-fixed divide-y divide-gray-700">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th scope="col" class="w-1/4 px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Username</th>
+                            <th scope="col" class="w-1/4 px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">API Key</th>
+                            <th scope="col" class="w-1/4 px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Type</th>
+                            <th scope="col" class="w-1/4 relative px-6 py-3"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-gray-800/50 divide-y divide-gray-700">
+                        {% for user in users %}
+                        <tr x-data="{ apiKeyVisible: false }">
+                            <td class="px-6 py-4 whitespace-normal break-words text-sm font-medium text-white">
+                                {{ user.username }}
+                                <div class="text-xs text-gray-400">{{ user.email or 'N/A' }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-normal break-words text-sm text-gray-400 font-mono">
+                                <div class="flex items-center">
+                                    <span x-show="!apiKeyVisible">••••••••••••••••</span>
+                                    <span x-show="apiKeyVisible" x-cloak>{{ user.api_key or 'No Key' }}</span>
+                                    <button @click="apiKeyVisible = !apiKeyVisible" class="ml-2 text-gray-400 hover:text-white">
+                                        <svg x-show="!apiKeyVisible" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                          <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                                        </svg>
+                                        <svg x-show="apiKeyVisible" x-cloak xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                          <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.955 9.955 0 00-4.542 1.075L3.707 2.293zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                          <path d="M2 4.272l4.586 4.586a12.924 12.924 0 00-3.132 1.141A10.004 10.004 0 00.458 10C1.732 14.057 5.522 17 10 17a9.955 9.955 0 004.542-1.075L15.728 18A1 1 0 0017.142 16.586l-14-14A1 1 0 001.728 1.172L2 2.414V4.272z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                {% if user.is_sso_user %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-500/20 text-blue-300">SSO User</span>
+                                {% else %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-600 text-gray-200">Local User</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                <form action="{{ url_for('handover.regenerate_api_key', user_id=user.id) }}" method="post" class="inline">
+                                    <button type="submit" class="text-indigo-400 hover:text-indigo-300">Regenerate</button>
+                                </form>
+                                {% if user.username != 'admin' %}
+                                <form action="{{ url_for('handover.delete_user', user_id=user.id) }}" method="post" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                    <button type="submit" class="text-red-500 hover:text-red-400">Delete</button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
-    </form>
 
-    <!-- User Management -->
-    <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
-        <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">User Management</h2>
-        
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-700">
-                <thead class="bg-gray-800">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Username</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">API Key</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Type</th>
-                        <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-                    </tr>
-                </thead>
-                <tbody class="bg-gray-800/50 divide-y divide-gray-700">
-                    {% for user in users %}
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ user.username }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{{ user.email or 'N/A' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 font-mono">{{ user.api_key or 'No Key' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            {% if user.is_sso_user %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-500/20 text-blue-300">SSO User</span>
-                            {% else %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-600 text-gray-200">Local User</span>
-                            {% endif %}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                            <form action="{{ url_for('handover.regenerate_api_key', user_id=user.id) }}" method="post" class="inline">
-                                <button type="submit" class="text-indigo-400 hover:text-indigo-300">Regenerate Key</button>
-                            </form>
-                            {% if user.username != 'admin' %}
-                            <form action="{{ url_for('handover.delete_user', user_id=user.id) }}" method="post" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                <button type="submit" class="text-red-500 hover:text-red-400">Delete</button>
-                            </form>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <!-- Create Service User -->
+        <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">Create Service User</h2>
+            <p class="text-sm text-gray-400 mb-4">Create a local, non-SSO user, typically for API access.</p>
+            <form action="{{ url_for('handover.create_user') }}" method="post" class="max-w-md space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-bold text-gray-300">Username</label>
+                    <input type="text" name="username" id="username" required class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-bold text-gray-300">Password</label>
+                    <input type="password" name="password" id="password" required class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm">
+                </div>
+                <div>
+                    <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Create User</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Create Service User -->
-    <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
-        <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">Create Service User</h2>
-        <p class="text-sm text-gray-400 mb-4">Create a local, non-SSO user, typically for API access.</p>
-        <form action="{{ url_for('handover.create_user') }}" method="post" class="max-w-md space-y-4">
-            <div>
-                <label for="username" class="block text-sm font-bold text-gray-300">Username</label>
-                <input type="text" name="username" id="username" required class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm">
-            </div>
-            <div>
-                <label for="password" class="block text-sm font-bold text-gray-300">Password</label>
-                <input type="password" name="password" id="password" required class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm">
-            </div>
-            <div>
-                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Create User</button>
+    <!-- Right Column (60%) -->
+    <div class="md:col-span-3">
+        <!-- Google SSO Configuration -->
+        <form x-data="{ secretVisible: false }" action="{{ url_for('handover.update_settings') }}" method="post">
+            <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">Google SSO & App Configuration</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="app_hostname" class="block text-sm font-bold text-gray-300">Application Hostname (Base URL)</label>
+                        <input type="text" name="app_hostname" id="app_hostname" value="{{ app_hostname }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="e.g., https://myapp.example.com">
+                    </div>
+                     <div>
+                        <label for="google_client_id" class="block text-sm font-bold text-gray-300">Google Client ID</label>
+                        <input type="text" name="google_client_id" id="google_client_id" value="{{ google_client_id }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="Enter your Google Client ID">
+                    </div>
+                    <div>
+                        <label for="google_client_secret" class="block text-sm font-bold text-gray-300">Google Client Secret</label>
+                        <div class="relative">
+                            <input :type="secretVisible ? 'text' : 'password'" name="google_client_secret" id="google_client_secret" value="{{ google_client_secret }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm pr-10" placeholder="Enter your Google Client Secret">
+                            <button type="button" @click="secretVisible = !secretVisible" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white">
+                                <svg x-show="!secretVisible" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg>
+                                <svg x-show="secretVisible" x-cloak xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.955 9.955 0 00-4.542 1.075L3.707 2.293zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /><path d="M2 4.272l4.586 4.586a12.924 12.924 0 00-3.132 1.141A10.004 10.004 0 00.458 10C1.732 14.057 5.522 17 10 17a9.955 9.955 0 004.542-1.075L15.728 18A1 1 0 0017.142 16.586l-14-14A1 1 0 001.728 1.172L2 2.414V4.272z" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                    <p class="text-sm text-gray-400 mb-2">
+                        Use the following URLs in your Google Cloud Console for the OAuth 2.0 Client ID setup.
+                    </p>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase">Authorized JavaScript origins</label>
+                            <div class="mt-1 p-2 bg-gray-800 rounded-md">
+                                <code class="text-indigo-300 font-mono text-sm">{{ app_hostname }}</code>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 uppercase">Authorized redirect URIs</label>
+                             <div class="mt-1 p-2 bg-gray-800 rounded-md">
+                                <code class="text-indigo-300 font-mono text-sm">{{ google_redirect_uri }}</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 pt-5 border-t border-gray-700">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="enable_login_debug" name="enable_login_debug" class="form-checkbox h-4 w-4 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500" {% if enable_login_debug %}checked{% endif %}>
+                            <label for="enable_login_debug" class="ml-2 block text-sm text-gray-400">Enable Login Debug</label>
+                        </div>
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
+
 </div>
 {% endblock %}

@@ -21,7 +21,13 @@ def login():
         else:
             flash('Invalid username or password.', 'error')
 
-    return render_template('login.html')
+    # Conditionally pass the redirect URI for debugging
+    debug_redirect_uri = None
+    if current_app.config.get('ENABLE_LOGIN_DEBUG') == 'true':
+        # FIX: Force https scheme for the debug URL
+        debug_redirect_uri = url_for('auth.google_authorize', _external=True, _scheme='https')
+
+    return render_template('login.html', debug_redirect_uri=debug_redirect_uri)
 
 @auth_bp.route('/logout')
 @login_required
@@ -42,7 +48,8 @@ def google_login():
     nonce = os.urandom(16).hex()
     session['oauth_nonce'] = nonce
 
-    redirect_uri = url_for('auth.google_authorize', _external=True)
+    # FIX: Force https scheme for the redirect URL
+    redirect_uri = url_for('auth.google_authorize', _external=True, _scheme='https')
     return oauth.google.authorize_redirect(redirect_uri, nonce=nonce)
 
 @auth_bp.route('/login/google/authorize')
@@ -73,7 +80,8 @@ def google_authorize():
             db.session.commit()
             flash('New user account created via Google SSO.', 'success')
 
-        login_user(user)
+        # FIX: Add remember=True to persist the session after SSO login
+        login_user(user, remember=True)
         return redirect(url_for('handover.index'))
     except Exception as e:
         flash(f'An error occurred during Google login: {str(e)}', 'error')

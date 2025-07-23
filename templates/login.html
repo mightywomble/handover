@@ -8,6 +8,16 @@
         </header>
         
         <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
+            
+            {% if debug_redirect_uri %}
+            <div class="mb-4 p-3 bg-yellow-900/50 rounded-lg border border-yellow-500/30 text-sm text-yellow-300">
+                <p class="font-bold">SSO Debug Mode Enabled</p>
+                <p class="mt-1 text-xs">The application is generating the following redirect URI:</p>
+                <code class="block mt-2 p-2 bg-gray-900 rounded-md text-white font-mono break-all">{{ debug_redirect_uri }}</code>
+                <p class="mt-2 text-xs">Ensure this value is listed under "Authorized redirect URIs" in your Google Cloud Console.</p>
+            </div>
+            {% endif %}
+
             <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-6">
                 <div>
                     <label for="username" class="block text-sm font-bold text-gray-300">Username</label>

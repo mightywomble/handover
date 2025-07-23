@@ -63,7 +63,8 @@ def create_app():
         default_settings = {
             'APP_HOSTNAME': 'http://localhost:5015',
             'GOOGLE_CLIENT_ID': '',
-            'GOOGLE_CLIENT_SECRET': ''
+            'GOOGLE_CLIENT_SECRET': '',
+            'ENABLE_LOGIN_DEBUG': 'false' # Add the new debug setting
         }
         for key, value in default_settings.items():
             if not Setting.query.filter_by(key=key).first():

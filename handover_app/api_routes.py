@@ -1,9 +1,35 @@
 # handover_app/api_routes.py
 from flask import Blueprint, request, jsonify
+from functools import wraps
+from .models import User
 
 api_bp = Blueprint('api', __name__, url_prefix='/api')
 
+# --- API Key Decorator ---
+def api_key_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        api_key = None
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            try:
+                api_key = auth_header.split(" ")[1]
+            except IndexError:
+                return jsonify({"error": "Malformed Authorization header. Use 'Bearer <key>'."}), 401
+        
+        if not api_key:
+            return jsonify({"error": "Authorization header is missing or invalid."}), 401
+        
+        user = User.query.filter_by(api_key=api_key).first()
+        if not user:
+            return jsonify({"error": "Invalid API key."}), 401
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @api_bp.route('/onboard/customer', methods=['POST'])
+@api_key_required
 def onboard_customer_api():
     """API endpoint to onboard a new customer."""
     data = request.get_json()
@@ -24,6 +50,7 @@ def onboard_customer_api():
     return jsonify(response), 201
 
 @api_bp.route('/onboard/supplier', methods=['POST'])
+@api_key_required
 def onboard_supplier_api():
     """API endpoint to onboard a new supplier."""
     data = request.get_json()

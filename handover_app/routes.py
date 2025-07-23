@@ -8,6 +8,8 @@ import os
 import json
 import uuid
 from datetime import datetime
+from flask_login import login_required, current_user
+from .models import db, User
 
 from .forms import (
     large_cluster_form_sections,
@@ -21,20 +23,23 @@ from .utils import allowed_file, process_dynamic_table
 bp = Blueprint('handover', __name__)
 
 @bp.route('/')
+@login_required
 def index():
     """Shows the initial selection screen."""
     session.clear()
     return render_template('start.html')
 
 @bp.route('/form/large-cluster')
+@login_required
 def large_cluster_start():
     """Starts the multi-stage form for a Large Cluster."""
     session.clear()
     session['form_data'] = {}
     session['form_type'] = 'large_cluster'
     return redirect(url_for('handover.stage', stage_name=large_cluster_stage_order[0]))
-
+    
 @bp.route('/form/base-install', methods=['GET', 'POST'])
+@login_required
 def base_install_form():
     """Handles the single-page form for a Base Install."""
     session['form_type'] = 'base_install'
@@ -88,6 +93,7 @@ def base_install_form():
 
 
 @bp.route('/stage/<stage_name>', methods=['GET', 'POST'])
+@login_required
 def stage(stage_name):
     """Renders a form stage for the Large Cluster form."""
     if stage_name not in large_cluster_stage_order:
@@ -131,7 +137,7 @@ def stage(stage_name):
                             session['form_data'][stage_name][field_name][sub_field_name] = request.form.get(sub_field_name)
             else:
                 session['form_data'][stage_name][field_name] = request.form.get(field_name)
-
+        
         session.modified = True
         action = request.form.get('action', 'continue')
         current_index = large_cluster_stage_order.index(stage_name)
@@ -149,8 +155,8 @@ def stage(stage_name):
 
     current_index = large_cluster_stage_order.index(stage_name)
     form_data = session.get('form_data', {}).get(stage_name, {})
-
-    return render_template('index.html',
+    
+    return render_template('index.html', 
                            stage_name=stage_name,
                            stage_data=large_cluster_form_sections[stage_name],
                            form_data=form_data,
@@ -159,12 +165,13 @@ def stage(stage_name):
                            form_sections=large_cluster_form_sections)
 
 @bp.route('/review')
+@login_required
 def review():
     """Displays all collected data for final review before submission."""
     if 'form_data' not in session or not session['form_data']:
         flash("No data to review. Please start from the beginning.", "warning")
         return redirect(url_for('handover.index'))
-
+        
     return render_template('review.html',
                            form_data=session.get('form_data', {}),
                            form_type=session.get('form_type'),
@@ -173,6 +180,7 @@ def review():
                            large_cluster_stage_order=large_cluster_stage_order)
 
 @bp.route('/submit_report', methods=['POST'])
+@login_required
 def submit_report():
     """Saves the report to a file and redirects to a success page with the approval link."""
     if 'form_data' not in session:
@@ -187,15 +195,16 @@ def submit_report():
         "form_type": session.get('form_type'),
         "approvals": {}
     }
-
+    
     filepath = os.path.join(current_app.config['SUBMISSIONS_FOLDER'], f"{handover_id}.json")
     with open(filepath, 'w') as f:
         json.dump(submission_data, f, indent=4)
-
+    
     session.clear()
     return redirect(url_for('handover.submission_success', handover_id=handover_id))
 
 @bp.route('/submission_success/<handover_id>')
+@login_required
 def submission_success(handover_id):
     """Shows a success message with the unique link for the approval process."""
     approval_link = url_for('handover.approve', handover_id=handover_id, _external=True)
@@ -208,15 +217,16 @@ def submission_success(handover_id):
     return render_template('submission_success.html', approval_link=approval_link)
 
 @bp.route('/approve/<handover_id>', methods=['GET'])
+@login_required
 def approve(handover_id):
     """The approval page for the service team."""
     filepath = os.path.join(current_app.config['SUBMISSIONS_FOLDER'], f"{handover_id}.json")
     if not os.path.exists(filepath):
         return "Submission not found", 404
-
+        
     with open(filepath, 'r') as f:
         submission_data = json.load(f)
-
+        
     return render_template('approval.html',
                            submission=submission_data,
                            large_cluster_form_sections=large_cluster_form_sections,
@@ -224,6 +234,7 @@ def approve(handover_id):
                            large_cluster_stage_order=large_cluster_stage_order)
 
 @bp.route('/process_approval/<handover_id>', methods=['POST'])
+@login_required
 def process_approval(handover_id):
     """Processes the submitted approval form."""
     filepath = os.path.join(current_app.config['SUBMISSIONS_FOLDER'], f"{handover_id}.json")
@@ -235,7 +246,7 @@ def process_approval(handover_id):
 
     approvals = {}
     requires_more_info = False
-
+    
     # Determine which form sections to check for approvals
     approval_sections = []
     if submission_data.get('form_type') == 'large_cluster':
@@ -284,11 +295,13 @@ def process_approval(handover_id):
 
 
 @bp.route('/uploads/<filename>')
+@login_required
 def uploaded_file(filename):
     """Serves uploaded files."""
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
 
 @bp.route('/form/onboard-customer', methods=['GET', 'POST'])
+@login_required
 def onboard_customer():
     """Handles the form for onboarding a new customer."""
     session['form_type'] = 'onboard_customer'
@@ -316,6 +329,7 @@ def onboard_customer():
 
 
 @bp.route('/review/onboard-customer')
+@login_required
 def review_onboard_customer():
     """Displays collected data for customer onboarding for final review."""
     if 'form_data' not in session or session.get('form_type') != 'onboard_customer':
@@ -328,6 +342,7 @@ def review_onboard_customer():
 
 
 @bp.route('/onboard/create_company', methods=['POST'])
+@login_required
 def create_company():
     """Placeholder for creating the company."""
     # This will eventually be an API call
@@ -337,6 +352,7 @@ def create_company():
     return redirect(url_for('handover.index'))
 
 @bp.route('/form/onboard-supplier', methods=['GET', 'POST'])
+@login_required
 def onboard_supplier():
     """Handles the form for onboarding a new supplier."""
     session['form_type'] = 'onboard_supplier'
@@ -378,6 +394,7 @@ def onboard_supplier():
 
 
 @bp.route('/review/onboard-supplier')
+@login_required
 def review_onboard_supplier():
     """Displays collected data for supplier onboarding for final review."""
     if 'form_data' not in session or session.get('form_type') != 'onboard_supplier':
@@ -390,6 +407,7 @@ def review_onboard_supplier():
 
 
 @bp.route('/onboard/send-to-itsm', methods=['POST'])
+@login_required
 def send_to_itsm():
     """Placeholder for sending supplier details to ITSM."""
     session.clear()
@@ -397,6 +415,64 @@ def send_to_itsm():
     return redirect(url_for('handover.index'))
 
 @bp.route('/api-docs')
+@login_required
 def api_docs():
     """Shows the API documentation page."""
     return render_template('api_docs.html')
+
+# --- Settings Routes ---
+
+@bp.route('/settings')
+@login_required
+def settings():
+    """Shows the user management and settings page."""
+    users = User.query.all()
+    return render_template('settings.html', users=users)
+
+@bp.route('/settings/create_user', methods=['POST'])
+@login_required
+def create_user():
+    """Creates a new local service user."""
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    if not username or not password:
+        flash('Username and password are required.', 'warning')
+        return redirect(url_for('handover.settings'))
+    
+    if User.query.filter_by(username=username).first():
+        flash('Username already exists.', 'warning')
+        return redirect(url_for('handover.settings'))
+
+    new_user = User(username=username)
+    new_user.set_password(password)
+    new_user.generate_api_key()
+    db.session.add(new_user)
+    db.session.commit()
+    
+    flash(f'User {username} created successfully.', 'success')
+    return redirect(url_for('handover.settings'))
+
+@bp.route('/settings/regenerate_api_key/<int:user_id>', methods=['POST'])
+@login_required
+def regenerate_api_key(user_id):
+    """Generates a new API key for a user."""
+    user = User.query.get_or_404(user_id)
+    user.generate_api_key()
+    db.session.commit()
+    flash(f'API key for {user.username} has been regenerated.', 'success')
+    return redirect(url_for('handover.settings'))
+
+@bp.route('/settings/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    """Deletes a user."""
+    user = User.query.get_or_404(user_id)
+    if user.username == 'admin':
+        flash('Cannot delete the admin user.', 'warning')
+        return redirect(url_for('handover.settings'))
+    
+    db.session.delete(user)
+    db.session.commit()
+    flash(f'User {user.username} has been deleted.', 'success')
+    return redirect(url_for('handover.settings'))

@@ -120,3 +120,43 @@ base_install_form_definition = {
         }
     ]
 }
+
+# --- Onboard Customer Form Definition (New) ---
+onboard_customer_form_definition = {
+    "title": "Onboard Customer",
+    "sections": [
+        {
+            "title": "Cudo Details",
+            "fields": [
+                {"name": "account_manager", "label": "Account Manager", "type": "text", "placeholder": "e.g., John Doe"},
+                {"name": "salesforce_reference", "label": "Salesforce Reference", "type": "text", "placeholder": "e.g., SF-12345"},
+            ]
+        },
+        {
+            "title": "Company Details",
+            "fields": [
+                {"name": "company_name", "label": "Name", "type": "text"},
+                {"name": "address_1", "label": "Address", "type": "text"},
+                {"name": "address_2", "label": "Address 2", "type": "text"},
+                {"name": "city", "label": "City", "type": "text"},
+                {"name": "state", "label": "State", "type": "text"},
+                {"name": "zip_code", "label": "Zip", "type": "text"},
+                {"name": "country", "label": "Country", "type": "text"},
+                {"name": "phone", "label": "Phone", "type": "text"},
+                {"name": "notes", "label": "Notes", "type": "textarea"},
+            ]
+        },
+        {
+            "title": "Contacts",
+            "fields": [
+                {"name": "contacts", "label": "Contacts", "type": "dynamic_table", "columns": ["First Name", "Last Name", "Email", "Phone", "Company", "Dept", "Is Supervisor"]},
+            ]
+        },
+        {
+            "title": "Supplier",
+            "fields": [
+                {"name": "supplier_placeholder", "label": "Supplier Details", "type": "textarea", "placeholder": "This will be an API call into an application eventually, its a placeholder now"},
+            ]
+        },
+    ]
+}

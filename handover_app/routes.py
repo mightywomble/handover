@@ -9,7 +9,12 @@ import json
 import uuid
 from datetime import datetime
 
-from .forms import large_cluster_form_sections, large_cluster_stage_order, base_install_form_definition
+from .forms import (
+    large_cluster_form_sections,
+    large_cluster_stage_order,
+    base_install_form_definition,
+    onboard_customer_form_definition
+)
 from .utils import allowed_file, process_dynamic_table
 
 bp = Blueprint('handover', __name__)
@@ -27,7 +32,7 @@ def large_cluster_start():
     session['form_data'] = {}
     session['form_type'] = 'large_cluster'
     return redirect(url_for('handover.stage', stage_name=large_cluster_stage_order[0]))
-    
+
 @bp.route('/form/base-install', methods=['GET', 'POST'])
 def base_install_form():
     """Handles the single-page form for a Base Install."""
@@ -125,7 +130,7 @@ def stage(stage_name):
                             session['form_data'][stage_name][field_name][sub_field_name] = request.form.get(sub_field_name)
             else:
                 session['form_data'][stage_name][field_name] = request.form.get(field_name)
-        
+
         session.modified = True
         action = request.form.get('action', 'continue')
         current_index = large_cluster_stage_order.index(stage_name)
@@ -143,8 +148,8 @@ def stage(stage_name):
 
     current_index = large_cluster_stage_order.index(stage_name)
     form_data = session.get('form_data', {}).get(stage_name, {})
-    
-    return render_template('index.html', 
+
+    return render_template('index.html',
                            stage_name=stage_name,
                            stage_data=large_cluster_form_sections[stage_name],
                            form_data=form_data,
@@ -158,7 +163,7 @@ def review():
     if 'form_data' not in session or not session['form_data']:
         flash("No data to review. Please start from the beginning.", "warning")
         return redirect(url_for('handover.index'))
-        
+
     return render_template('review.html',
                            form_data=session.get('form_data', {}),
                            form_type=session.get('form_type'),
@@ -181,11 +186,11 @@ def submit_report():
         "form_type": session.get('form_type'),
         "approvals": {}
     }
-    
+
     filepath = os.path.join(current_app.config['SUBMISSIONS_FOLDER'], f"{handover_id}.json")
     with open(filepath, 'w') as f:
         json.dump(submission_data, f, indent=4)
-    
+
     session.clear()
     return redirect(url_for('handover.submission_success', handover_id=handover_id))
 
@@ -207,10 +212,10 @@ def approve(handover_id):
     filepath = os.path.join(current_app.config['SUBMISSIONS_FOLDER'], f"{handover_id}.json")
     if not os.path.exists(filepath):
         return "Submission not found", 404
-        
+
     with open(filepath, 'r') as f:
         submission_data = json.load(f)
-        
+
     return render_template('approval.html',
                            submission=submission_data,
                            large_cluster_form_sections=large_cluster_form_sections,
@@ -229,7 +234,7 @@ def process_approval(handover_id):
 
     approvals = {}
     requires_more_info = False
-    
+
     # Determine which form sections to check for approvals
     approval_sections = []
     if submission_data.get('form_type') == 'large_cluster':
@@ -281,3 +286,51 @@ def process_approval(handover_id):
 def uploaded_file(filename):
     """Serves uploaded files."""
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+
+@bp.route('/form/onboard-customer', methods=['GET', 'POST'])
+def onboard_customer():
+    """Handles the form for onboarding a new customer."""
+    session['form_type'] = 'onboard_customer'
+    form_data = session.get('form_data', {})
+
+    if request.method == 'POST':
+        all_fields = []
+        for section in onboard_customer_form_definition['sections']:
+            all_fields.extend(section['fields'])
+
+        for field in all_fields:
+            field_name = field['name']
+            if field['type'] == 'dynamic_table':
+                form_data[field_name] = process_dynamic_table(field_name, field['columns'])
+            else:
+                form_data[field_name] = request.form.get(field_name)
+
+        session['form_data'] = form_data
+        session.modified = True
+        return redirect(url_for('handover.review_onboard_customer'))
+
+    return render_template('onboard_customer_form.html',
+                           form_definition=onboard_customer_form_definition,
+                           form_data=form_data)
+
+
+@bp.route('/review/onboard-customer')
+def review_onboard_customer():
+    """Displays collected data for customer onboarding for final review."""
+    if 'form_data' not in session or session.get('form_type') != 'onboard_customer':
+        flash("No data to review. Please start from the beginning.", "warning")
+        return redirect(url_for('handover.index'))
+
+    return render_template('review_onboard_customer.html',
+                           form_data=session.get('form_data', {}),
+                           form_definition=onboard_customer_form_definition)
+
+
+@bp.route('/onboard/create_company', methods=['POST'])
+def create_company():
+    """Placeholder for creating the company."""
+    # This will eventually be an API call
+    # For now, just clear the session and show a success message.
+    session.clear()
+    flash("Company created successfully! (This is a placeholder)", "success")
+    return redirect(url_for('handover.index'))

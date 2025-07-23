@@ -4,10 +4,55 @@
 {% block content %}
 <header class="mb-10">
     <h1 class="text-3xl font-bold text-white">Settings</h1>
-    <p class="text-gray-400 mt-1">Manage users and API keys.</p>
+    <p class="text-gray-400 mt-1">Manage users, API keys, and SSO configuration.</p>
 </header>
 
 <div class="space-y-12">
+    <!-- Google SSO Configuration -->
+    <form action="{{ url_for('handover.update_settings') }}" method="post">
+        <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">Google SSO & App Configuration</h2>
+            <div class="space-y-4">
+                <div>
+                    <label for="app_hostname" class="block text-sm font-bold text-gray-300">Application Hostname (Base URL)</label>
+                    <input type="text" name="app_hostname" id="app_hostname" value="{{ app_hostname }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="e.g., https://myapp.example.com">
+                </div>
+                 <div>
+                    <label for="google_client_id" class="block text-sm font-bold text-gray-300">Google Client ID</label>
+                    <input type="text" name="google_client_id" id="google_client_id" value="{{ google_client_id }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="Enter your Google Client ID">
+                </div>
+                <div>
+                    <label for="google_client_secret" class="block text-sm font-bold text-gray-300">Google Client Secret</label>
+                    <input type="password" name="google_client_secret" id="google_client_secret" value="{{ google_client_secret }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm" placeholder="Enter your Google Client Secret">
+                </div>
+            </div>
+            <div class="mt-8 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                <p class="text-sm text-gray-400 mb-2">
+                    Use the following URLs in your Google Cloud Console for the OAuth 2.0 Client ID setup.
+                </p>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 uppercase">Authorized JavaScript origins</label>
+                        <div class="mt-1 p-2 bg-gray-800 rounded-md">
+                            <code class="text-indigo-300 font-mono text-sm">{{ app_hostname }}</code>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 uppercase">Authorized redirect URIs</label>
+                         <div class="mt-1 p-2 bg-gray-800 rounded-md">
+                            <code class="text-indigo-300 font-mono text-sm">{{ google_redirect_uri }}</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-6 pt-5 border-t border-gray-700 flex justify-end">
+                <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </form>
+
     <!-- User Management -->
     <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
         <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">User Management</h2>

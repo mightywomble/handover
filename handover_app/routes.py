@@ -9,7 +9,7 @@ import json
 import uuid
 from datetime import datetime
 from flask_login import login_required, current_user
-from .models import db, User
+from .models import db, User, Setting
 
 from .forms import (
     large_cluster_form_sections,
@@ -422,12 +422,71 @@ def api_docs():
 
 # --- Settings Routes ---
 
-@bp.route('/settings')
+@bp.route('/settings', methods=['GET'])
 @login_required
 def settings():
     """Shows the user management and settings page."""
     users = User.query.all()
-    return render_template('settings.html', users=users)
+    
+    # Get hostname from the live app config
+    app_hostname = current_app.config.get('APP_HOSTNAME', '')
+    google_redirect_uri = f"{app_hostname.rstrip('/')}{url_for('auth.google_authorize')}"
+    
+    # Explicitly pass the config values needed by the template to avoid UndefinedError
+    google_client_id = current_app.config.get('GOOGLE_CLIENT_ID', '')
+    google_client_secret = current_app.config.get('GOOGLE_CLIENT_SECRET', '')
+    
+    return render_template('settings.html', 
+                           users=users,
+                           google_redirect_uri=google_redirect_uri,
+                           app_hostname=app_hostname,
+                           google_client_id=google_client_id,
+                           google_client_secret=google_client_secret)
+
+@bp.route('/settings/update', methods=['POST'])
+@login_required
+def update_settings():
+    """Updates application settings like the hostname and Google SSO credentials."""
+    settings_to_update = {
+        'APP_HOSTNAME': request.form.get('app_hostname'),
+        'GOOGLE_CLIENT_ID': request.form.get('google_client_id'),
+        'GOOGLE_CLIENT_SECRET': request.form.get('google_client_secret')
+    }
+
+    try:
+        for key, value in settings_to_update.items():
+            setting = Setting.query.filter_by(key=key).first()
+            if setting:
+                setting.value = value
+                # Update the config of the running app immediately
+                current_app.config[key] = value
+            else:
+                # This case should ideally not be hit if defaults are created properly
+                new_setting = Setting(key=key, value=value)
+                db.session.add(new_setting)
+                current_app.config[key] = value
+
+        db.session.commit()
+        
+        # After updating secrets, the OAuth client needs to be re-registered
+        # This is a simplified approach. A more robust solution might involve a dedicated function.
+        oauth = current_app.config['oauth']
+        oauth.register(
+            name='google',
+            client_id=current_app.config.get('GOOGLE_CLIENT_ID'),
+            client_secret=current_app.config.get('GOOGLE_CLIENT_SECRET'),
+            server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+            client_kwargs={'scope': 'openid email profile'},
+            overwrite=True # Overwrite the existing client
+        )
+
+        flash('Settings updated successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error saving settings: {str(e)}', 'warning')
+        
+    return redirect(url_for('handover.settings'))
+
 
 @bp.route('/settings/create_user', methods=['POST'])
 @login_required

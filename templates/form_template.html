@@ -56,6 +56,29 @@
                     </div>
                 {% endfor %}
                 </div>
+            
+            {% elif field.type == 'multiselect_conditional' %}
+                <div x-data="{ selections: {{ form_data.get(field.name, {}).get('selection', []) | tojson | safe }} }">
+                    <select id="{{ field.name }}" name="{{ field.name }}" multiple
+                            class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm"
+                            style="height: 120px;"
+                            x-model="selections">
+                        {% for option in field.options %}
+                            <option class="bg-gray-800 text-gray-300" value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple.</p>
+
+                    {% for condition, sub_fields in field.conditions.items() %}
+                        <div x-show="selections.includes('{{ condition }}')" x-cloak class="mt-4 space-y-4 border-l-2 border-gray-700 pl-4">
+                            {% for sub_field in sub_fields %}
+                                <label class="block text-sm font-medium text-gray-400">{{ sub_field.label }}</label>
+                                <input type="text" name="{{ sub_field.name }}" class="form-input mt-1 block w-full rounded-md shadow-sm sm:text-sm"
+                                    value="{{ form_data.get(field.name, {}).get(sub_field.name, '') }}">
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
 
             {% elif field.type == 'dynamic_table' %}
                 <script>

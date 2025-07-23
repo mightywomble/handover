@@ -1,5 +1,5 @@
 {% if value %}
-    <div class="py-2 {% if field.type in ['textarea', 'dynamic_table'] or (field.type == 'conditional_select' and value.get('selection') in field.conditions) %}md:col-span-3{% else %}md:col-span-1{% endif %}">
+    <div class="py-2 {% if field.type in ['textarea', 'dynamic_table', 'multiselect_conditional'] or (field.type == 'conditional_select' and value.get('selection') in field.conditions) %}md:col-span-3{% else %}md:col-span-1{% endif %}">
         <dt class="text-sm font-medium text-gray-400">{{ field.label }}</dt>
         {% if field.type == 'dynamic_table' and value %}
             <dd class="mt-1 text-sm text-gray-300">
@@ -37,6 +37,19 @@
                         {% else %}
                             <dd class="mt-1 text-sm text-gray-300 whitespace-pre-wrap">{{ sub_value }}</dd>
                         {% endif %}
+                    {% endif %}
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% elif field.type == 'multiselect_conditional' %}
+            <dd class="mt-1 text-sm text-gray-300">{{ value.selection|join(', ') }}</dd>
+            {% if 'Other' in value.selection and 'Other' in field.conditions %}
+                <div class="mt-2 pl-4 border-l-2 border-gray-700">
+                {% for sub_field in field.conditions['Other'] %}
+                    {% set sub_value = value.get(sub_field.name) %}
+                    {% if sub_value %}
+                        <dt class="text-sm font-medium text-gray-500 mt-2">{{ sub_field.label }}</dt>
+                        <dd class="mt-1 text-sm text-gray-300 whitespace-pre-wrap">{{ sub_value }}</dd>
                     {% endif %}
                 {% endfor %}
                 </div>

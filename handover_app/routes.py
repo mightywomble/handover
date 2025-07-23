@@ -13,7 +13,8 @@ from .forms import (
     large_cluster_form_sections,
     large_cluster_stage_order,
     base_install_form_definition,
-    onboard_customer_form_definition
+    onboard_customer_form_definition,
+    onboard_supplier_form_definition
 )
 from .utils import allowed_file, process_dynamic_table
 
@@ -333,4 +334,64 @@ def create_company():
     # For now, just clear the session and show a success message.
     session.clear()
     flash("Company created successfully! (This is a placeholder)", "success")
+    return redirect(url_for('handover.index'))
+
+@bp.route('/form/onboard-supplier', methods=['GET', 'POST'])
+def onboard_supplier():
+    """Handles the form for onboarding a new supplier."""
+    session['form_type'] = 'onboard_supplier'
+    form_data = session.get('form_data', {})
+
+    if request.method == 'POST':
+        all_fields = []
+        for section in onboard_supplier_form_definition['sections']:
+            all_fields.extend(section['fields'])
+
+        for field in all_fields:
+            field_name = field['name']
+            if field['type'] == 'conditional_select':
+                form_data[field_name] = {}
+                selection = request.form.get(field_name)
+                form_data[field_name]['selection'] = selection
+                if selection in field.get('conditions', {}):
+                    for sub_field in field['conditions'][selection]:
+                        sub_field_name = sub_field['name']
+                        form_data[field_name][sub_field_name] = request.form.get(sub_field_name)
+            elif field['type'] == 'multiselect_conditional':
+                form_data[field_name] = {}
+                selections = request.form.getlist(field_name)
+                form_data[field_name]['selection'] = selections
+                if 'Other' in selections and 'Other' in field.get('conditions', {}):
+                     for sub_field in field['conditions']['Other']:
+                        sub_field_name = sub_field['name']
+                        form_data[field_name][sub_field_name] = request.form.get(sub_field_name)
+            else:
+                form_data[field_name] = request.form.get(field_name)
+
+        session['form_data'] = form_data
+        session.modified = True
+        return redirect(url_for('handover.review_onboard_supplier'))
+
+    return render_template('onboard_supplier_form.html',
+                           form_definition=onboard_supplier_form_definition,
+                           form_data=form_data)
+
+
+@bp.route('/review/onboard-supplier')
+def review_onboard_supplier():
+    """Displays collected data for supplier onboarding for final review."""
+    if 'form_data' not in session or session.get('form_type') != 'onboard_supplier':
+        flash("No data to review. Please start from the beginning.", "warning")
+        return redirect(url_for('handover.index'))
+
+    return render_template('review_onboard_supplier.html',
+                           form_data=session.get('form_data', {}),
+                           form_definition=onboard_supplier_form_definition)
+
+
+@bp.route('/onboard/send-to-itsm', methods=['POST'])
+def send_to_itsm():
+    """Placeholder for sending supplier details to ITSM."""
+    session.clear()
+    flash("Supplier details sent to ITSM successfully! (This is a placeholder)", "success")
     return redirect(url_for('handover.index'))

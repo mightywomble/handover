@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Review Supplier Details{% endblock %}
+{% block content %}
+<header class="mb-10">
+    <h1 class="text-3xl font-bold text-white">Review Supplier Details</h1>
+    <p class="text-gray-400 mt-1">Please verify all details before sending to ITSM.</p>
+</header>
+<main class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg space-y-8">
+    {% for section in form_definition.sections %}
+        <section>
+            <div class="flex justify-between items-center border-b-2 border-gray-700 pb-2 mb-4">
+                <h2 class="text-xl font-semibold text-white">{{ section.title }}</h2>
+                <a href="{{ url_for('handover.onboard_supplier') }}" class="text-sm font-medium text-indigo-400 hover:text-indigo-300">Edit</a>
+            </div>
+            <dl class="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-4">
+                {% for field in section.fields %}
+                    {% set value = form_data.get(field.name) %}
+                    {% include 'field_display.html' %}
+                {% endfor %}
+            </dl>
+        </section>
+    {% endfor %}
+</main>
+<div class="mt-8 bg-gray-800/50 border border-gray-700 p-6 rounded-lg shadow-lg">
+    <h3 class="text-lg font-medium leading-6 text-white">Final Submission</h3>
+    <p class="mt-1 text-sm text-gray-400">This will eventually be an API call to the ITSM system.</p>
+    <form action="{{ url_for('handover.send_to_itsm') }}" method="post" class="mt-4">
+        <button type="submit" class="w-full inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
+            Send to ITSM
+        </button>
+    </form>
+</div>
+{% endblock %}

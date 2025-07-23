@@ -160,3 +160,45 @@ onboard_customer_form_definition = {
         },
     ]
 }
+
+# --- Onboard Supplier Form Definition (New) ---
+onboard_supplier_form_definition = {
+    "title": "Onboard Supplier",
+    "sections": [
+        {
+            "title": "Supplier Details",
+            "fields": [
+                {"name": "supplier_name", "label": "Supplier Name", "type": "text"},
+                {"name": "ci_type", "label": "CI Type", "type": "select", "options": ["", "On Platform", "Off Platform"]},
+                {
+                    "name": "ci_sub_type", "label": "CI Sub Type", "type": "multiselect_conditional",
+                    "options": ["Baremetal", "VM", "DC", "Colo", "Rack", "Other"],
+                    "conditions": {
+                        "Other": [{"name": "ci_sub_type_other", "label": "Specify Other CI Sub Type", "type": "text"}]
+                    }
+                },
+                {"name": "status", "label": "Status", "type": "select", "options": ["", "Production Live", "Production Available"]},
+                {"name": "supplier_dc", "label": "Supplier Data Center", "type": "text", "placeholder": "e.g., in-hydrabad-01"},
+                {"name": "dc_address", "label": "Data Center Address", "type": "text"},
+                {"name": "primary_contact_name", "label": "Primary Contact Name (Escalation Point)", "type": "text"},
+                {"name": "primary_contact_email", "label": "Primary Contact Email (Escalation Point)", "type": "text"},
+                {
+                    "name": "support_contact_method", "label": "Support Contact Method", "type": "multiselect_conditional",
+                    "options": ["Portal", "Email", "Slack", "SMS", "Other"],
+                    "conditions": {
+                        "Other": [{"name": "support_contact_method_other", "label": "Specify Other Method", "type": "text"}]
+                    }
+                },
+                {"name": "support_email", "label": "Support email address", "type": "text"},
+                {
+                    "name": "support_hours", "label": "Support hours", "type": "conditional_select",
+                    "options": ["", "24/7", "24/5", "9/5/M-F", "Other"],
+                    "conditions": {
+                        "Other": [{"name": "support_hours_other", "label": "Specify Other Hours", "type": "text"}]
+                    }
+                },
+                {"name": "on_site_tech_name", "label": "On site Tech Name", "type": "text"},
+            ]
+        }
+    ]
+}

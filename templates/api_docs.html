@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}API Documentation{% endblock %}
+
+{% block content %}
+<header class="mb-10 text-center">
+    <h1 class="text-3xl font-bold text-white">API Documentation</h1>
+    <p class="text-gray-400 mt-1">How to use the Service Team Portal API.</p>
+</header>
+
+<div class="space-y-12">
+    <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">Onboard Customer</h2>
+        <p class="mb-4 text-gray-400">This endpoint allows you to programmatically onboard a new customer.</p>
+        
+        <p class="font-mono text-sm"><span class="px-2 py-1 font-bold text-white bg-green-500/20 rounded">POST</span> <code class="ml-2 text-green-300">/api/onboard/customer</code></p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-2">Example `curl` Request</h3>
+        <pre class="bg-gray-900 p-4 rounded-md text-sm text-gray-300 overflow-x-auto"><code>curl -X POST -H "Content-Type: application/json" -d '{
+    "account_manager": "John Doe",
+    "salesforce_reference": "SF-12345",
+    "company_name": "API Test Corp",
+    "address_1": "123 API Lane",
+    "city": "Techville",
+    "contacts": [
+        {"First Name": "Jane", "Last Name": "API", "Email": "jane@apitest.com"}
+    ]
+}' {{ request.url_root }}api/onboard/customer</code></pre>
+
+        <h3 class="text-lg font-semibold text-white mt-6 mb-2">Example JSON Payload</h3>
+        <pre class="bg-gray-900 p-4 rounded-md text-sm text-gray-300 overflow-x-auto"><code>{
+    "account_manager": "John Doe",
+    "salesforce_reference": "SF-12345",
+    "company_name": "API Test Corp",
+    "address_1": "123 API Lane",
+    "address_2": "",
+    "city": "Techville",
+    "state": "CA",
+    "zip_code": "90210",
+    "country": "USA",
+    "phone": "555-0101",
+    "notes": "Customer onboarded via API.",
+    "contacts": [
+        {
+            "First Name": "Jane",
+            "Last Name": "API",
+            "Email": "jane@apitest.com",
+            "Phone": "555-0102",
+            "Company": "API Test Corp",
+            "Dept": "IT",
+            "Is Supervisor": "No"
+        }
+    ]
+}</code></pre>
+    </div>
+
+    <div class="bg-gray-800/50 border border-gray-700 p-8 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold text-white mb-6 border-b border-gray-700 pb-4">Onboard Supplier</h2>
+        <p class="mb-4 text-gray-400">This endpoint allows you to programmatically onboard a new supplier.</p>
+
+        <p class="font-mono text-sm"><span class="px-2 py-1 font-bold text-white bg-green-500/20 rounded">POST</span> <code class="ml-2 text-green-300">/api/onboard/supplier</code></p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-2">Example `curl` Request</h3>
+        <pre class="bg-gray-900 p-4 rounded-md text-sm text-gray-300 overflow-x-auto"><code>curl -X POST -H "Content-Type: application/json" -d '{
+    "supplier_name": "API Supplier Inc.",
+    "ci_type": "Off Platform",
+    "status": "Production Available"
+}' {{ request.url_root }}api/onboard/supplier</code></pre>
+
+        <h3 class="text-lg font-semibold text-white mt-6 mb-2">Example JSON Payload</h3>
+        <pre class="bg-gray-900 p-4 rounded-md text-sm text-gray-300 overflow-x-auto"><code>{
+    "supplier_name": "API Supplier Inc.",
+    "ci_type": "Off Platform",
+    "ci_sub_type": {
+        "selection": ["Other"],
+        "ci_sub_type_other": "Custom Hardware"
+    },
+    "status": "Production Available",
+    "supplier_dc": "us-east-99",
+    "dc_address": "99 API Road",
+    "primary_contact_name": "Supplier Support",
+    "primary_contact_email": "support@apisupplier.com",
+    "support_contact_method": {
+        "selection": ["Email", "Portal"]
+    },
+    "support_email": "support@apisupplier.com",
+    "support_hours": {
+        "selection": ["Other"],
+        "support_hours_other": "9am-5pm PST M-F"
+    },
+    "on_site_tech_name": "N/A"
+}</code></pre>
+    </div>
+</div>
+{% endblock %}

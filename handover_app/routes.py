@@ -395,3 +395,8 @@ def send_to_itsm():
     session.clear()
     flash("Supplier details sent to ITSM successfully! (This is a placeholder)", "success")
     return redirect(url_for('handover.index'))
+
+@bp.route('/api-docs')
+def api_docs():
+    """Shows the API documentation page."""
+    return render_template('api_docs.html')

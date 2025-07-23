@@ -21,7 +21,12 @@ def login():
         else:
             flash('Invalid username or password.', 'error')
 
-    return render_template('login.html')
+    # Conditionally pass the redirect URI for debugging
+    debug_redirect_uri = None
+    if current_app.config.get('ENABLE_LOGIN_DEBUG') == 'true':
+        debug_redirect_uri = url_for('auth.google_authorize', _external=True)
+
+    return render_template('login.html', debug_redirect_uri=debug_redirect_uri)
 
 @auth_bp.route('/logout')
 @login_required

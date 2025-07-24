@@ -43,14 +43,15 @@ def create_company(session_cookies, base_url, form_data):
     }
 
     try:
-        # FIX: Use PUT instead of POST to create a new company object
-        response = requests.put(company_url, json=company_payload, cookies=session_cookies, timeout=10)
+        # FIX: SysAid API seems to use POST for creating new objects, not PUT.
+        response = requests.post(company_url, json=company_payload, cookies=session_cookies, timeout=10)
         response.raise_for_status()
         return response.json(), None
     except requests.exceptions.HTTPError as e:
-        error_message = f"API Error: {e.response.status_code} {e.response.reason}."
+        error_message = f"API Error: {e.response.status_code} {e.response.reason} on URL {e.request.url}."
+        if e.response.status_code == 405:
+            error_message += f" The API endpoint does not support the '{e.request.method}' method."
         try:
-            # Try to get more specific error details from the response body
             error_details = e.response.json()
             error_message += f" Details: {error_details.get('message', e.response.text)}"
         except json.JSONDecodeError:
@@ -73,12 +74,14 @@ def create_ci(session_cookies, base_url, form_data):
     }
 
     try:
-        # FIX: Use PUT instead of POST to create a new CI object
-        response = requests.put(ci_url, json=ci_payload, cookies=session_cookies, timeout=10)
+        # FIX: SysAid API seems to use POST for creating new objects, not PUT.
+        response = requests.post(ci_url, json=ci_payload, cookies=session_cookies, timeout=10)
         response.raise_for_status()
         return response.json(), None
     except requests.exceptions.HTTPError as e:
-        error_message = f"API Error: {e.response.status_code} {e.response.reason}."
+        error_message = f"API Error: {e.response.status_code} {e.response.reason} on URL {e.request.url}."
+        if e.response.status_code == 405:
+            error_message += f" The API endpoint does not support the '{e.request.method}' method."
         try:
             error_details = e.response.json()
             error_message += f" Details: {error_details.get('message', e.response.text)}"

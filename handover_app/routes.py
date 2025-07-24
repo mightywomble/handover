@@ -10,6 +10,7 @@ import uuid
 from datetime import datetime
 from flask_login import login_required, current_user
 from .models import db, User, Setting
+from . import sysaid # Import the new sysaid module
 
 from .forms import (
     large_cluster_form_sections,
@@ -344,12 +345,34 @@ def review_onboard_customer():
 @bp.route('/onboard/create_company', methods=['POST'])
 @login_required
 def create_company():
-    """Placeholder for creating the company."""
-    # This will eventually be an API call
-    # For now, just clear the session and show a success message.
-    session.clear()
-    flash("Company created successfully! (This is a placeholder)", "success")
-    return redirect(url_for('handover.index'))
+    """Creates the company in SysAid via API."""
+    sysaid_url = current_app.config.get('SYSAID_URL')
+    sysaid_user = current_app.config.get('SYSAID_USERNAME')
+    sysaid_pass = current_app.config.get('SYSAID_PASSWORD')
+    form_data = session.get('form_data', {})
+
+    if not all([sysaid_url, sysaid_user, sysaid_pass]):
+        flash('SysAid integration is not configured in settings.', 'warning')
+        return redirect(url_for('handover.review_onboard_customer'))
+
+    session_cookies, login_error = sysaid.login(sysaid_url, sysaid_user, sysaid_pass)
+    if login_error:
+        flash(f'Failed to login to SysAid: {login_error}', 'error')
+        return redirect(url_for('handover.review_onboard_customer'))
+
+    result, create_error = sysaid.create_company(session_cookies, sysaid_url, form_data)
+    if create_error:
+        flash(f'Failed to create company in SysAid: {create_error}', 'error')
+        return redirect(url_for('handover.review_onboard_customer'))
+    
+    if result:
+        flash(f"Successfully created company in SysAid with ID: {result.get('id')}", 'success')
+        session.clear()
+        return redirect(url_for('handover.index'))
+    else:
+        # Fallback error
+        flash('An unknown error occurred while creating the company in SysAid.', 'error')
+        return redirect(url_for('handover.review_onboard_customer'))
 
 @bp.route('/form/onboard-supplier', methods=['GET', 'POST'])
 @login_required
@@ -409,10 +432,33 @@ def review_onboard_supplier():
 @bp.route('/onboard/send-to-itsm', methods=['POST'])
 @login_required
 def send_to_itsm():
-    """Placeholder for sending supplier details to ITSM."""
-    session.clear()
-    flash("Supplier details sent to ITSM successfully! (This is a placeholder)", "success")
-    return redirect(url_for('handover.index'))
+    """Creates a CI in SysAid for the new supplier."""
+    sysaid_url = current_app.config.get('SYSAID_URL')
+    sysaid_user = current_app.config.get('SYSAID_USERNAME')
+    sysaid_pass = current_app.config.get('SYSAID_PASSWORD')
+    form_data = session.get('form_data', {})
+
+    if not all([sysaid_url, sysaid_user, sysaid_pass]):
+        flash('SysAid integration is not configured in settings.', 'warning')
+        return redirect(url_for('handover.review_onboard_supplier'))
+
+    session_cookies, login_error = sysaid.login(sysaid_url, sysaid_user, sysaid_pass)
+    if login_error:
+        flash(f'Failed to login to SysAid: {login_error}', 'error')
+        return redirect(url_for('handover.review_onboard_supplier'))
+
+    result, create_error = sysaid.create_ci(session_cookies, sysaid_url, form_data)
+    if create_error:
+        flash(f'Failed to create CI in SysAid: {create_error}', 'error')
+        return redirect(url_for('handover.review_onboard_supplier'))
+        
+    if result:
+        flash(f"Successfully created CI in SysAid with ID: {result.get('id')}", 'success')
+        session.clear()
+        return redirect(url_for('handover.index'))
+    else:
+        flash('An unknown error occurred while creating the CI in SysAid.', 'error')
+        return redirect(url_for('handover.review_onboard_supplier'))
 
 @bp.route('/api-docs')
 @login_required
@@ -428,15 +474,15 @@ def settings():
     """Shows the user management and settings page."""
     users = User.query.all()
     
-    # Use url_for with _external=True to respect proxy headers for the redirect URI
-    google_redirect_uri = url_for('auth.google_authorize', _external=True)
+    google_redirect_uri = url_for('auth.google_authorize', _external=True, _scheme='https')
     
-    # The hostname for display should still come from the config for consistency in the UI
     app_hostname = current_app.config.get('APP_HOSTNAME', '')
-    
     google_client_id = current_app.config.get('GOOGLE_CLIENT_ID', '')
     google_client_secret = current_app.config.get('GOOGLE_CLIENT_SECRET', '')
     enable_login_debug = current_app.config.get('ENABLE_LOGIN_DEBUG') == 'true'
+    sysaid_url = current_app.config.get('SYSAID_URL', '')
+    sysaid_username = current_app.config.get('SYSAID_USERNAME', '')
+    sysaid_password = current_app.config.get('SYSAID_PASSWORD', '')
     
     return render_template('settings.html', 
                            users=users,
@@ -444,7 +490,10 @@ def settings():
                            app_hostname=app_hostname,
                            google_client_id=google_client_id,
                            google_client_secret=google_client_secret,
-                           enable_login_debug=enable_login_debug)
+                           enable_login_debug=enable_login_debug,
+                           sysaid_url=sysaid_url,
+                           sysaid_username=sysaid_username,
+                           sysaid_password=sysaid_password)
 
 @bp.route('/settings/update', methods=['POST'])
 @login_required
@@ -454,7 +503,10 @@ def update_settings():
         'APP_HOSTNAME': request.form.get('app_hostname'),
         'GOOGLE_CLIENT_ID': request.form.get('google_client_id'),
         'GOOGLE_CLIENT_SECRET': request.form.get('google_client_secret'),
-        'ENABLE_LOGIN_DEBUG': 'true' if 'enable_login_debug' in request.form else 'false'
+        'ENABLE_LOGIN_DEBUG': 'true' if 'enable_login_debug' in request.form else 'false',
+        'SYSAID_URL': request.form.get('sysaid_url'),
+        'SYSAID_USERNAME': request.form.get('sysaid_username'),
+        'SYSAID_PASSWORD': request.form.get('sysaid_password')
     }
 
     try:

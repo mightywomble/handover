@@ -11,11 +11,7 @@ import uuid
 from datetime import datetime
 from flask_login import login_required, current_user
 from .models import db, User, Setting
-# --- SysAid import removed ---
-
-# --- START: TOPDESK IMPORT ADDED ---
 from . import topdesk_api 
-# --- END: TOPDESK IMPORT ADDED ---
 
 from .forms import (
     large_cluster_form_sections,
@@ -35,7 +31,7 @@ def index():
     session.clear()
     return render_template('start.html')
 
-# ... (Your other routes like large_cluster_start, base_install_form, stage, etc. remain unchanged) ...
+# ... (Your other routes like large_cluster_start, base_install_form, etc., remain unchanged) ...
 @bp.route('/form/large-cluster')
 @login_required
 def large_cluster_start():
@@ -139,7 +135,7 @@ def stage(stage_name):
                                 if file and file.filename and allowed_file(file.filename):
                                     filename = secure_filename(f"{sub_field_name}_{file.filename}")
                                     file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
-                                    session['form_data'][stage_name][field_name][sub_field_name] = filename
+                                    form_data[field_name][sub_field_name] = filename
                         else:
                             session['form_data'][stage_name][field_name][sub_field_name] = request.form.get(sub_field_name)
             else:
@@ -352,29 +348,48 @@ def review_onboard_customer():
 @bp.route('/onboard/create_company', methods=['POST'])
 @login_required
 def create_company():
-    """Creates the company in TopDesk via API."""
+    """Creates the branch, person group, and persons in TopDesk."""
     form_data = session.get('form_data', {})
     
-    # --- TopDesk Integration Logic ---
+    # Check if TopDesk integration is configured
     topdesk_url = current_app.config.get('TOPDESK_URL')
     topdesk_user = current_app.config.get('TOPDESK_USERNAME')
     topdesk_pass = current_app.config.get('TOPDESK_APP_PASSWORD')
 
-    if all([topdesk_url, topdesk_user, topdesk_pass]):
-        branch_id = topdesk_api.create_topdesk_branch(form_data)
-        if branch_id:
-            # The dynamic table is named 'contacts_table' in your form definition
-            contacts = form_data.get('contacts_table', [])
-            for person_data in contacts:
-                topdesk_api.create_topdesk_person(person_data, branch_id)
-    else:
-        flash('TopDesk integration is not configured in settings. Skipping TopDesk actions.', 'warning')
+    if not all([topdesk_url, topdesk_user, topdesk_pass]):
+        flash('TopDesk integration is not configured in settings.', 'warning')
+        session.clear()
+        return redirect(url_for('handover.index'))
+
+    # --- TopDesk Onboarding Workflow ---
+    # 1. Create the Branch
+    branch_id = topdesk_api.create_topdesk_branch(form_data)
+    if not branch_id:
+        # Error flash messages are handled inside the API function
+        return redirect(url_for('handover.review_onboard_customer'))
+
+    # 2. Create the Person Group
+    customer_name = form_data.get('customer_name')
+    person_group_id = topdesk_api.create_person_group(customer_name)
+    if not person_group_id:
+        return redirect(url_for('handover.review_onboard_customer'))
+
+    # 3. Create Persons and add them to the new group
+    contacts = form_data.get('contacts_table', [])
+    persons_created_count = 0
+    for person_data in contacts:
+        # First, create the person record linked to the branch
+        person_id = topdesk_api.create_person(person_data, branch_id)
+        if person_id:
+            # If person is created, add them to the person group
+            if topdesk_api.add_person_to_group(person_id, person_group_id):
+                persons_created_count += 1
     
-    # --- SysAid logic removed ---
+    if persons_created_count > 0:
+        flash(f"Successfully created and grouped {persons_created_count} person(s) in TopDesk.", 'success')
 
     # Clear session and redirect after all operations
     session.clear()
-    flash('Customer onboarding process submitted to TopDesk.', 'success')
     return redirect(url_for('handover.index'))
 
 
@@ -432,10 +447,6 @@ def review_onboard_supplier():
                            form_data=session.get('form_data', {}),
                            form_definition=onboard_supplier_form_definition)
 
-
-# --- The /onboard/send-to-itsm route has been removed as it was SysAid specific ---
-
-
 @bp.route('/api-docs')
 @login_required
 def api_docs():
@@ -457,8 +468,6 @@ def settings():
     google_client_secret = current_app.config.get('GOOGLE_CLIENT_SECRET', '')
     enable_login_debug = current_app.config.get('ENABLE_LOGIN_DEBUG') == 'true'
     
-    # --- SysAid variables removed ---
-
     # --- TopDesk settings variables ---
     topdesk_url = current_app.config.get('TOPDESK_URL', '')
     topdesk_username = current_app.config.get('TOPDESK_USERNAME', '')
@@ -471,7 +480,6 @@ def settings():
                            google_client_id=google_client_id,
                            google_client_secret=google_client_secret,
                            enable_login_debug=enable_login_debug,
-                           # --- SysAid variables removed from render_template call ---
                            topdesk_url=topdesk_url,
                            topdesk_username=topdesk_username,
                            topdesk_password=topdesk_password
@@ -487,7 +495,6 @@ def update_settings():
         'GOOGLE_CLIENT_ID': request.form.get('google_client_id', ''),
         'GOOGLE_CLIENT_SECRET': request.form.get('google_client_secret', ''),
         'ENABLE_LOGIN_DEBUG': 'true' if 'enable_login_debug' in request.form else 'false',
-        # --- SysAid settings removed ---
         'TOPDESK_URL': request.form.get('topdesk_url', ''),
         'TOPDESK_USERNAME': request.form.get('topdesk_username', ''),
         'TOPDESK_APP_PASSWORD': request.form.get('topdesk_password', '')

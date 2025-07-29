@@ -136,23 +136,26 @@ onboard_customer_form_definition = {
         {
             'title': 'Customer Address',
             'fields': [
-                {'name': 'customer_street', 'label': 'Street', 'type': 'text', 'required': True},
                 {'name': 'customer_street_number', 'label': 'Street Number', 'type': 'text'},
+                {'name': 'customer_street', 'label': 'Street', 'type': 'text', 'required': True},
                 {'name': 'customer_city', 'label': 'City', 'type': 'text', 'required': True},
                 {'name': 'customer_postcode', 'label': 'Postcode', 'type': 'text', 'required': True},
                 {'name': 'customer_country', 'label': 'Country', 'type': 'text'},
             ]
         },
         {
-            'title': 'Contact Persons',
-            'description': 'Add the primary contact persons for this customer.',
+            'title': 'Contacts',
+            'description': 'Add the primary contacts for this customer.',
             'fields': [
                 {
                     'name': 'contacts_table',
                     'type': 'dynamic_table',
                     'columns': [
-                        {'name': 'contact_name', 'label': 'Name', 'type': 'text'},
+                        {'name': 'contact_surname', 'label': 'Surname', 'type': 'text'},
+                        {'name': 'contact_forename', 'label': 'Forename', 'type': 'text'},
+                        {'name': 'contact_prefixes', 'label': 'Prefixes', 'type': 'text'},
                         {'name': 'contact_email', 'label': 'Email', 'type': 'email'},
+                        {'name': 'contact_job_title', 'label': 'Job Title', 'type': 'text'},
                     ]
                 }
             ]

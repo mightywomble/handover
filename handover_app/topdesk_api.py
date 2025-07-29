@@ -90,17 +90,45 @@ def create_topdesk_branch(form_data):
         print(error_message)
         return None
 
-def create_topdesk_person(person_data, branch_id):
+def create_person_group(group_name):
     """
-    Creates a new person in TopDesk and links them to a branch.
-    Returns True on success, False on failure.
+    Creates a new person group.
+    Returns the new group ID on success, None on failure.
+    """
+    base_url, auth = _get_api_details()
+    endpoint = f"{base_url}/persongroups"
+    
+    payload = { "name": group_name }
+    
+    try:
+        response = requests.post(endpoint, json=payload, auth=auth)
+        response.raise_for_status()
+        new_group = response.json()
+        flash(f"Successfully created person group '{group_name}'.", 'success')
+        return new_group.get('id')
+    except requests.exceptions.RequestException as e:
+        error_message = f"Error creating person group '{group_name}': {e}"
+        if e.response is not None:
+            error_message += f" - Response: {e.response.text}"
+        flash(error_message, 'danger')
+        print(error_message)
+        return None
+
+def create_person(person_data, branch_id):
+    """
+    Creates a new person record and links it to a branch.
+    Returns the new person's ID on success, None on failure.
     """
     base_url, auth = _get_api_details()
     endpoint = f"{base_url}/persons"
     
+    # Build the payload dynamically to include the new fields if they exist
     payload = {
-        "surName": person_data.get('contact_name'),
+        "surName": person_data.get('contact_surname'),
+        "firstName": person_data.get('contact_forename'),
+        "prefixes": person_data.get('contact_prefixes'),
         "email": person_data.get('contact_email'),
+        "jobTitle": person_data.get('contact_job_title'),
         "branch": {
             "id": branch_id
         }
@@ -109,9 +137,42 @@ def create_topdesk_person(person_data, branch_id):
     try:
         response = requests.post(endpoint, json=payload, auth=auth)
         response.raise_for_status()
+        new_person = response.json()
+        return new_person.get('id')
+    except requests.exceptions.RequestException as e:
+        error_message = f"Error creating TopDesk person '{payload.get('surName', 'N/A')}': {e}"
+        if e.response is not None:
+            error_message += f" - Response: {e.response.text}"
+        flash(error_message, 'danger')
+        print(error_message)
+        return None
+
+def add_person_to_group(person_id, group_id):
+    """
+    Adds an existing person to an existing person group by updating the person record.
+    Returns True on success, False on failure.
+    """
+    base_url, auth = _get_api_details()
+    # The correct endpoint is for updating the person, not the group.
+    endpoint = f"{base_url}/persons/{person_id}"
+    
+    # The payload tells the person which group(s) they should be a member of.
+    # We send a list, as a person can be in multiple groups.
+    payload = {
+        "personGroups": [
+            {
+                "id": group_id
+            }
+        ]
+    }
+    
+    try:
+        # This action uses a PUT request to update the person.
+        response = requests.put(endpoint, json=payload, auth=auth)
+        response.raise_for_status()
         return True
     except requests.exceptions.RequestException as e:
-        error_message = f"Error creating TopDesk person '{payload['surName']}': {e}"
+        error_message = f"Error adding person to group: {e}"
         if e.response is not None:
             error_message += f" - Response: {e.response.text}"
         flash(error_message, 'danger')

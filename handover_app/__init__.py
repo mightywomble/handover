@@ -1,4 +1,5 @@
 # handover_app/__init__.py
+
 from flask import Flask
 from flask_session import Session
 import os
@@ -65,9 +66,10 @@ def create_app():
             'GOOGLE_CLIENT_ID': '',
             'GOOGLE_CLIENT_SECRET': '',
             'ENABLE_LOGIN_DEBUG': 'false',
-            'SYSAID_URL': '',
-            'SYSAID_USERNAME': '',
-            'SYSAID_PASSWORD': ''
+            # --- SysAid settings removed ---
+            'TOPDESK_URL': '',
+            'TOPDESK_USERNAME': '',
+            'TOPDESK_APP_PASSWORD': ''
         }
         for key, value in default_settings.items():
             if not Setting.query.filter_by(key=key).first():

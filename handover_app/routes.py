@@ -1,4 +1,5 @@
 # handover_app/routes.py
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for,
     current_app, send_from_directory
@@ -10,7 +11,11 @@ import uuid
 from datetime import datetime
 from flask_login import login_required, current_user
 from .models import db, User, Setting
-from . import sysaid # Import the new sysaid module
+# --- SysAid import removed ---
+
+# --- START: TOPDESK IMPORT ADDED ---
+from . import topdesk_api 
+# --- END: TOPDESK IMPORT ADDED ---
 
 from .forms import (
     large_cluster_form_sections,
@@ -30,6 +35,7 @@ def index():
     session.clear()
     return render_template('start.html')
 
+# ... (Your other routes like large_cluster_start, base_install_form, stage, etc. remain unchanged) ...
 @bp.route('/form/large-cluster')
 @login_required
 def large_cluster_start():
@@ -316,6 +322,7 @@ def onboard_customer():
         for field in all_fields:
             field_name = field['name']
             if field['type'] == 'dynamic_table':
+                # The dynamic table for contacts is named 'contacts_table' in your form definition
                 form_data[field_name] = process_dynamic_table(field_name, field['columns'])
             else:
                 form_data[field_name] = request.form.get(field_name)
@@ -345,34 +352,31 @@ def review_onboard_customer():
 @bp.route('/onboard/create_company', methods=['POST'])
 @login_required
 def create_company():
-    """Creates the company in SysAid via API."""
-    sysaid_url = current_app.config.get('SYSAID_URL')
-    sysaid_user = current_app.config.get('SYSAID_USERNAME')
-    sysaid_pass = current_app.config.get('SYSAID_PASSWORD')
+    """Creates the company in TopDesk via API."""
     form_data = session.get('form_data', {})
-
-    if not all([sysaid_url, sysaid_user, sysaid_pass]):
-        flash('SysAid integration is not configured in settings.', 'warning')
-        return redirect(url_for('handover.review_onboard_customer'))
-
-    session_cookies, login_error = sysaid.login(sysaid_url, sysaid_user, sysaid_pass)
-    if login_error:
-        flash(f'Failed to login to SysAid: {login_error}', 'error')
-        return redirect(url_for('handover.review_onboard_customer'))
-
-    result, create_error = sysaid.create_company(session_cookies, sysaid_url, form_data)
-    if create_error:
-        flash(f'Failed to create company in SysAid: {create_error}', 'error')
-        return redirect(url_for('handover.review_onboard_customer'))
     
-    if result:
-        flash(f"Successfully created company in SysAid with ID: {result.get('id')}", 'success')
-        session.clear()
-        return redirect(url_for('handover.index'))
+    # --- TopDesk Integration Logic ---
+    topdesk_url = current_app.config.get('TOPDESK_URL')
+    topdesk_user = current_app.config.get('TOPDESK_USERNAME')
+    topdesk_pass = current_app.config.get('TOPDESK_APP_PASSWORD')
+
+    if all([topdesk_url, topdesk_user, topdesk_pass]):
+        branch_id = topdesk_api.create_topdesk_branch(form_data)
+        if branch_id:
+            # The dynamic table is named 'contacts_table' in your form definition
+            contacts = form_data.get('contacts_table', [])
+            for person_data in contacts:
+                topdesk_api.create_topdesk_person(person_data, branch_id)
     else:
-        # Fallback error
-        flash('An unknown error occurred while creating the company in SysAid.', 'error')
-        return redirect(url_for('handover.review_onboard_customer'))
+        flash('TopDesk integration is not configured in settings. Skipping TopDesk actions.', 'warning')
+    
+    # --- SysAid logic removed ---
+
+    # Clear session and redirect after all operations
+    session.clear()
+    flash('Customer onboarding process submitted to TopDesk.', 'success')
+    return redirect(url_for('handover.index'))
+
 
 @bp.route('/form/onboard-supplier', methods=['GET', 'POST'])
 @login_required
@@ -429,36 +433,8 @@ def review_onboard_supplier():
                            form_definition=onboard_supplier_form_definition)
 
 
-@bp.route('/onboard/send-to-itsm', methods=['POST'])
-@login_required
-def send_to_itsm():
-    """Creates a CI in SysAid for the new supplier."""
-    sysaid_url = current_app.config.get('SYSAID_URL')
-    sysaid_user = current_app.config.get('SYSAID_USERNAME')
-    sysaid_pass = current_app.config.get('SYSAID_PASSWORD')
-    form_data = session.get('form_data', {})
+# --- The /onboard/send-to-itsm route has been removed as it was SysAid specific ---
 
-    if not all([sysaid_url, sysaid_user, sysaid_pass]):
-        flash('SysAid integration is not configured in settings.', 'warning')
-        return redirect(url_for('handover.review_onboard_supplier'))
-
-    session_cookies, login_error = sysaid.login(sysaid_url, sysaid_user, sysaid_pass)
-    if login_error:
-        flash(f'Failed to login to SysAid: {login_error}', 'error')
-        return redirect(url_for('handover.review_onboard_supplier'))
-
-    result, create_error = sysaid.create_ci(session_cookies, sysaid_url, form_data)
-    if create_error:
-        flash(f'Failed to create CI in SysAid: {create_error}', 'error')
-        return redirect(url_for('handover.review_onboard_supplier'))
-        
-    if result:
-        flash(f"Successfully created CI in SysAid with ID: {result.get('id')}", 'success')
-        session.clear()
-        return redirect(url_for('handover.index'))
-    else:
-        flash('An unknown error occurred while creating the CI in SysAid.', 'error')
-        return redirect(url_for('handover.review_onboard_supplier'))
 
 @bp.route('/api-docs')
 @login_required
@@ -480,9 +456,13 @@ def settings():
     google_client_id = current_app.config.get('GOOGLE_CLIENT_ID', '')
     google_client_secret = current_app.config.get('GOOGLE_CLIENT_SECRET', '')
     enable_login_debug = current_app.config.get('ENABLE_LOGIN_DEBUG') == 'true'
-    sysaid_url = current_app.config.get('SYSAID_URL', '')
-    sysaid_username = current_app.config.get('SYSAID_USERNAME', '')
-    sysaid_password = current_app.config.get('SYSAID_PASSWORD', '')
+    
+    # --- SysAid variables removed ---
+
+    # --- TopDesk settings variables ---
+    topdesk_url = current_app.config.get('TOPDESK_URL', '')
+    topdesk_username = current_app.config.get('TOPDESK_USERNAME', '')
+    topdesk_password = current_app.config.get('TOPDESK_APP_PASSWORD', '')
     
     return render_template('settings.html', 
                            users=users,
@@ -491,22 +471,26 @@ def settings():
                            google_client_id=google_client_id,
                            google_client_secret=google_client_secret,
                            enable_login_debug=enable_login_debug,
-                           sysaid_url=sysaid_url,
-                           sysaid_username=sysaid_username,
-                           sysaid_password=sysaid_password)
+                           # --- SysAid variables removed from render_template call ---
+                           topdesk_url=topdesk_url,
+                           topdesk_username=topdesk_username,
+                           topdesk_password=topdesk_password
+                           )
 
 @bp.route('/settings/update', methods=['POST'])
 @login_required
 def update_settings():
     """Updates application settings."""
+    # Using .get(key, '') provides a default empty string if the form field is missing, preventing the IntegrityError
     settings_to_update = {
-        'APP_HOSTNAME': request.form.get('app_hostname'),
-        'GOOGLE_CLIENT_ID': request.form.get('google_client_id'),
-        'GOOGLE_CLIENT_SECRET': request.form.get('google_client_secret'),
+        'APP_HOSTNAME': request.form.get('app_hostname', ''),
+        'GOOGLE_CLIENT_ID': request.form.get('google_client_id', ''),
+        'GOOGLE_CLIENT_SECRET': request.form.get('google_client_secret', ''),
         'ENABLE_LOGIN_DEBUG': 'true' if 'enable_login_debug' in request.form else 'false',
-        'SYSAID_URL': request.form.get('sysaid_url'),
-        'SYSAID_USERNAME': request.form.get('sysaid_username'),
-        'SYSAID_PASSWORD': request.form.get('sysaid_password')
+        # --- SysAid settings removed ---
+        'TOPDESK_URL': request.form.get('topdesk_url', ''),
+        'TOPDESK_USERNAME': request.form.get('topdesk_username', ''),
+        'TOPDESK_APP_PASSWORD': request.form.get('topdesk_password', '')
     }
 
     try:

@@ -123,41 +123,40 @@ base_install_form_definition = {
 
 # --- Onboard Customer Form Definition (New) ---
 onboard_customer_form_definition = {
-    "title": "Onboard Customer",
-    "sections": [
+    'title': 'Onboard New Customer',
+    'sections': [
         {
-            "title": "Cudo Details",
-            "fields": [
-                {"name": "account_manager", "label": "Account Manager", "type": "text", "placeholder": "e.g., John Doe"},
-                {"name": "salesforce_reference", "label": "Salesforce Reference", "type": "text", "placeholder": "e.g., SF-12345"},
+            'title': 'Customer Details',
+            'fields': [
+                {'name': 'customer_name', 'label': 'Customer Name', 'type': 'text', 'required': True},
+                {'name': 'customer_email', 'label': 'Company Email', 'type': 'email'},
+                {'name': 'customer_website', 'label': 'Website', 'type': 'url', 'placeholder': 'https://example.com'},
             ]
         },
         {
-            "title": "Company Details",
-            "fields": [
-                {"name": "company_name", "label": "Name", "type": "text"},
-                {"name": "address_1", "label": "Address", "type": "text"},
-                {"name": "address_2", "label": "Address 2", "type": "text"},
-                {"name": "city", "label": "City", "type": "text"},
-                {"name": "state", "label": "State", "type": "text"},
-                {"name": "zip_code", "label": "Zip", "type": "text"},
-                {"name": "country", "label": "Country", "type": "text"},
-                {"name": "phone", "label": "Phone", "type": "text"},
-                {"name": "notes", "label": "Notes", "type": "textarea"},
+            'title': 'Customer Address',
+            'fields': [
+                {'name': 'customer_street', 'label': 'Street', 'type': 'text', 'required': True},
+                {'name': 'customer_street_number', 'label': 'Street Number', 'type': 'text'},
+                {'name': 'customer_city', 'label': 'City', 'type': 'text', 'required': True},
+                {'name': 'customer_postcode', 'label': 'Postcode', 'type': 'text', 'required': True},
+                {'name': 'customer_country', 'label': 'Country', 'type': 'text'},
             ]
         },
         {
-            "title": "Contacts",
-            "fields": [
-                {"name": "contacts", "label": "Contacts", "type": "dynamic_table", "columns": ["First Name", "Last Name", "Email", "Phone", "Company", "Dept", "Is Supervisor"]},
+            'title': 'Contact Persons',
+            'description': 'Add the primary contact persons for this customer.',
+            'fields': [
+                {
+                    'name': 'contacts_table',
+                    'type': 'dynamic_table',
+                    'columns': [
+                        {'name': 'contact_name', 'label': 'Name', 'type': 'text'},
+                        {'name': 'contact_email', 'label': 'Email', 'type': 'email'},
+                    ]
+                }
             ]
-        },
-        {
-            "title": "Supplier",
-            "fields": [
-                {"name": "supplier_placeholder", "label": "Supplier Details", "type": "textarea", "placeholder": "This will be an API call into an application eventually, its a placeholder now"},
-            ]
-        },
+        }
     ]
 }
 

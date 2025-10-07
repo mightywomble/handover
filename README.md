@@ -152,3 +152,136 @@ The API is protected and requires an API key for access.
     
 
 For more details and example payloads, visit the **API** page from the link in the application's header.
+
+---
+
+## Standalone Single‑File Form (Offline)
+
+In addition to the Flask web app, this repository can generate a single self‑contained HTML file that users can open directly in their browser (file://) with no install or server. It works offline and allows users to fill in the form and download a JSON file with their responses.
+
+### What it does
+- Produces one portable .html containing:
+  - The UI (all HTML/CSS/JS inline)
+  - The form definition (schema)
+  - Optional prefill payload
+- Users double‑click the .html, fill out the form, and click “Download Results” to save a JSON containing their answers (and any uploaded files embedded as base64).
+
+### Generate a bundle (Base Install form)
+Run the generator from the project root. These examples write the output into this folder.
+
+```bash
+python3 generate_bundle.py \
+  --form base_install \
+  --out handover_base_install.html \
+  --message "Fill out the form and click Download Results to save a JSON file. This works offline." \
+  --output-filename handover_base_install_result.json
+```
+
+Optionally add prefill values:
+
+```bash
+python3 generate_bundle.py \
+  --form base_install \
+  --prefill '{"customer_name":"Example Corp","submitter_email":"ops@example.com"}' \
+  --out handover_base_install.html
+```
+
+Supported forms:
+- `base_install`
+- `onboard_customer`
+- `onboard_supplier`
+- `large_cluster` (merges all stages into a single page)
+
+### Quick commands for other forms
+
+Onboard Customer
+```bash
+python3 generate_bundle.py \
+  --form onboard_customer \
+  --out handover_onboard_customer.html \
+  --output-filename onboard_customer_result.json
+```
+
+Onboard Supplier
+```bash
+python3 generate_bundle.py \
+  --form onboard_supplier \
+  --out handover_onboard_supplier.html \
+  --output-filename onboard_supplier_result.json
+```
+
+Large Cluster (all stages in one page)
+```bash
+python3 generate_bundle.py \
+  --form large_cluster \
+  --out handover_large_cluster.html \
+  --output-filename large_cluster_result.json
+```
+
+Notes:
+- The generator applies some usability enhancements in the portable bundle:
+  - Support Type uses checkboxes for “None”, “Basic Support”, and “Managed Services”. When “Managed Services” is selected, additional tier fields are shown (Managed Systems Administration: Gold/Silver/Bronze; Managed Slurm: None/Gold/Silver/Bronze).
+  - Component Overview includes a per‑row “Component Type” dropdown (Node/Switch/Router/OOB Management). Depending on the selection, extra row fields appear (e.g., GPU Make/Model/Driver Version for Node; Make/Model for Switch/Router).
+- The single‑file app works directly from file:// in Chrome/Edge/Firefox and Safari on desktop.
+
+### Example output JSON
+This is an abbreviated example of the downloaded JSON structure produced by the portable file.
+
+```json
+{
+  "meta": {
+    "generated_at": "2025-10-07T15:00:00.000Z",
+    "version": 1
+  },
+  "payload": {
+    "message": "Fill out the form and click Download Results to save a JSON file. This works offline.",
+    "prefill": {
+      "customer_name": "Example Corp",
+      "submitter_email": "ops@example.com"
+    },
+    "draftKey": "handover_draft_base_install",
+    "outputFilename": "handover_base_install_result.json"
+  },
+  "form_definition": { "title": "Base Install Handover", "sections": ["…"] },
+  "answers": {
+    "customer_name": "Example Corp",
+    "submitter_email": "ops@example.com",
+    "support_type": {
+      "selection": ["Managed Services"]
+    },
+    "managed_systems_administration": "Gold",
+    "managed_slurm": "None",
+    "component_overview": [
+      {
+        "component_type": "Node",
+        "hostname": "node-01",
+        "ip_address": "10.0.0.10",
+        "os_version": "Ubuntu 22.04",
+        "last_patch_date": "2025-09-20",
+        "gpu_make": "NVIDIA",
+        "gpu_model": "H100",
+        "driver_version": "535.54"
+      },
+      {
+        "component_type": "Switch",
+        "hostname": "sw-core-01",
+        "ip_address": "10.0.0.2",
+        "os_version": "",
+        "last_patch_date": "",
+        "make": "Arista",
+        "model": "7050X3"
+      }
+    ],
+    "public_ip_addresses": [
+      {
+        "description": "primary web",
+        "ip_address": "203.0.113.10",
+        "dns": "app.example.com",
+        "dns_config_location": "Route53"
+      }
+    ]
+  }
+}
+```
+
+File uploads: If your schema includes file inputs, uploaded files are included in the JSON as objects with name/type/size and a base64 field. This keeps the result fully self‑contained for offline handover.

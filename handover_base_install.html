@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Handover – Portable Form</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root { color-scheme: light dark; }
+    html, body { height: 100%; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #0b0b0c; color: #e5e7eb; }
+    header, main { max-width: 960px; margin: 0 auto; padding: 1.25rem; }
+    header { padding-top: 1.5rem; }
+    h1 { font-size: 1.75rem; margin: 0 0 .25rem; }
+    .muted { color: #9ca3af; }
+    .container { background: rgba(31,41,55,.5); border: 1px solid #374151; border-radius: .75rem; padding: 1rem; }
+    form { display: grid; gap: 1rem; }
+    fieldset { border: 1px solid #374151; border-radius: .5rem; padding: 1rem; }
+    legend { padding: 0 .4rem; color: #9ca3af; font-size: .95rem; }
+    label { display: block; font-weight: 600; margin-bottom: .35rem; color: #e5e7eb; }
+    input, textarea, select, button { font: inherit; }
+    input[type="text"], input[type="email"], input[type="url"], input[type="number"], input[type="date"], input[type="password"], textarea, select { width: 100%; box-sizing: border-box; padding: .6rem .7rem; border-radius: .5rem; border: 1px solid #374151; background: #111827; color: #e5e7eb; }
+    textarea { resize: vertical; min-height: 96px; }
+    .row { display: grid; grid-template-columns: repeat(12, 1fr); gap: .75rem; }
+    .col-12 { grid-column: span 12; }
+    .col-6 { grid-column: span 6; }
+    .col-4 { grid-column: span 4; }
+    .help { color: #9ca3af; font-size: .85rem; margin-top: .35rem; }
+    .actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: .5rem; padding: .6rem .9rem; border-radius: .5rem; border: 1px solid #374151; background: #1f2937; color: #e5e7eb; cursor: pointer; }
+    .btn.primary { background: #4f46e5; border-color: #4f46e5; }
+    .btn.secondary { background: #374151; }
+    .btn:hover { filter: brightness(1.05); }
+    .notice { padding: .75rem .9rem; border: 1px solid #374151; border-radius: .5rem; background: rgba(31,41,55,.5); color: #cbd5e1; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: .5rem; border-bottom: 1px solid #374151; }
+    th { color: #9ca3af; font-weight: 600; font-size: .9rem; }
+    .table-actions { white-space: nowrap; }
+    .chip { display: inline-block; padding: .15rem .5rem; border-radius: .75rem; background: #111827; border: 1px solid #374151; margin: .1rem; font-size: .85rem; }
+  </style>
+  <!-- Generator will inject JSON below -->
+  <script id="payload" type="application/json">{"message":"Fill out the form and click Download Results to save a JSON file. This works offline.","prefill":{},"draftKey":"handover_draft_base_install","outputFilename":"handover_base_install_result.json"}</script>
+  <script id="formdef" type="application/json">{"title":"Base Install Handover","sections":[{"title":"Service Introduction & Overview","fields":[{"name":"customer_name","label":"Customer Name","type":"text","placeholder":"e.g., Example Corp"},{"name":"submitter_email","label":"Your Email Address","type":"text","placeholder":"e.g., your.name@example.com (for approval notifications)"},{"name":"sales_reference","label":"Sales Reference","type":"text","placeholder":"e.g., SVC-WEBCL"},{"name":"salesforce_link","label":"Salesforce Link","type":"text","placeholder":"e.g., https://example.my.salesforce.com/..."},{"name":"version","label":"Version","type":"text","placeholder":"e.g., 1.0"},{"name":"date_prepared","label":"Date Prepared","type":"date"},{"name":"prepared_by","label":"Handover Prepared By (Engineer Name)","type":"text","placeholder":"e.g., Jane Doe"},{"name":"project_reference","label":"Project Reference","type":"text","placeholder":"e.g., PRJ-2025-04-WEBCL"},{"name":"brief_description","label":"Brief Description","type":"textarea","placeholder":"A short description of what the service/system does."},{"name":"support_type","label":"Support Type","type":"multiselect_conditional","widget":"checkboxes","options":["None","Basic Support","Managed Services"],"conditions":{"Managed Services":[{"name":"managed_systems_administration","label":"Managed Systems Administration","type":"select","options":["Gold","Silver","Bronze"]},{"name":"managed_slurm","label":"Managed Slurm","type":"select","options":["None","Gold","Silver","Bronze"]}]}},{"name":"service_hours_sla","label":"Service Hours / SLA","type":"text","placeholder":"e.g., 24x7, Business Hours 9-5 Mon-Fri"},{"name":"customer_contacts","label":"Customer Contacts","type":"textarea","placeholder":"List main user groups or departments"},{"name":"slack_group_url","label":"Slack Group URL","type":"text","placeholder":"e.g., https://app.slack.com/client/T0.../C0..."},{"name":"supplier_details","label":"Supplier Details","type":"dynamic_table","columns":["Supplier Name","Support Email","Contract Number","Notes"],"placeholders":{"Supplier Name":"e.g., Dell","Support Email":"e.g., support@dell.com","Contract Number":"e.g., 123-456-789"}},{"name":"deployment_location","label":"Deployment Location","type":"conditional_select","options":["Cudo Compute","3rd Party"],"conditions":{"3rd Party":[{"name":"baremetal_supplier","label":"Baremetal Supplier Name:","type":"text"}]}}]},{"title":"Infrastructure & Configuration","fields":[{"name":"component_overview","label":"Component Overview","type":"dynamic_table","columns":[{"name":"component_type","label":"Component Type","type":"select","options":["Node","Switch","Router","OOB Management"]},{"name":"hostname","label":"Hostname / Identifier","type":"text"},{"name":"ip_address","label":"IP Address","type":"text"},{"name":"os_version","label":"OS Version","type":"text"},{"name":"last_patch_date","label":"Last Patch Date","type":"text"}],"row_conditions":{"by":"component_type","map":{"Node":[{"name":"gpu_make","label":"GPU Make","type":"text"},{"name":"gpu_model","label":"GPU Model","type":"text"},{"name":"driver_version","label":"Driver Version","type":"text"}],"Switch":[{"name":"make","label":"Make","type":"text"},{"name":"model","label":"Model","type":"text"}],"Router":[{"name":"make","label":"Make","type":"text"},{"name":"model","label":"Model","type":"text"}]}}},{"name":"public_ip_address","label":"Public IP Address","type":"text","placeholder":"e.g., 8.8.8.8"},{"name":"credentials_management","label":"Credentials & Secrets Management","type":"dynamic_table","columns":["Item","Location","Search For / Link"],"options":{"Location":["1Password","HashiCorp Vault","CyberArk","Other"]},"placeholders":{"Item":"e.g., Web App DB Password","Search For / Link":"e.g., 'PROD Web Server Root' or path/to/secret"}},{"name":"build_method","label":"Build Method","type":"multiselect","options":["Manual","Ansible","Terraform","Other"]},{"name":"build_config_links","label":"Link to Build Config","type":"dynamic_table","columns":["Item","Github Link"],"placeholders":{"Item":"e.g., Web Server Playbook","Github Link":"e.g., https://github.com/user/repo/playbook.yml"}},{"name":"last_os_patch_date","label":"Last OS Patch Date","type":"text","placeholder":"e.g., When was sudo apt-get update run last?"}]},{"title":"Additional Links and Network Details","fields":[{"name":"notion_links","label":"Notion Links","type":"dynamic_table","columns":[{"name":"description","label":"Description","type":"text"},{"name":"link","label":"Link","type":"url"}]},{"name":"netbox_links","label":"Netbox Links","type":"dynamic_table","columns":[{"name":"description","label":"Description","type":"text"},{"name":"link","label":"Link","type":"url"}]},{"name":"build_diagrams","label":"Build Diagrams","type":"dynamic_table","columns":[{"name":"description","label":"Description","type":"text"},{"name":"link","label":"Link","type":"url"}]},{"name":"build_files","label":"Build Files","type":"dynamic_table","columns":[{"name":"description","label":"Description","type":"text"},{"name":"link","label":"Link","type":"url"}]},{"name":"configuration_files","label":"Configuration Files","type":"dynamic_table","columns":[{"name":"description","label":"Description","type":"text"},{"name":"link","label":"Link","type":"url"}]},{"name":"public_ip_addresses","label":"Public IP Addresses","type":"dynamic_table","columns":[{"name":"description","label":"Description","type":"text"},{"name":"ip_address","label":"IP Address","type":"text"},{"name":"dns","label":"DNS","type":"text"},{"name":"dns_config_location","label":"DNS Config Location","type":"text"}]}]}]}</script>
+</head>
+<body>
+  <header>
+    <h1>Handover – Portable Form</h1>
+    <p class="muted">This single file works offline. Complete the form and download your results.</p>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="notice" id="notice"></div>
+      <form id="handover-form"></form>
+      <div class="actions" style="margin-top:1rem">
+        <button class="btn primary" id="download">Download Results</button>
+        <button class="btn secondary" id="save-draft" type="button">Save Draft</button>
+        <button class="btn secondary" id="load-draft" type="button">Load Draft</button>
+        <button class="btn secondary" id="clear-draft" type="button">Clear Draft</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Utilities
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+
+    function parseJSONScript(id, fallback={}) {
+      try { return JSON.parse(document.getElementById(id)?.textContent || '{}'); } catch { return fallback; }
+    }
+
+    const payload = parseJSONScript('payload', {});
+    const formdef = parseJSONScript('formdef', {});
+
+    const notice = $('#notice');
+    notice.textContent = payload.message || 'No internet required. Your data stays in this browser until you download it.';
+
+    const form = $('#handover-form');
+
+    // Renderers
+    function renderInput(field, value='') {
+      const input = document.createElement('input');
+      input.type = field.type || 'text';
+      input.id = field.name;
+      input.name = field.name;
+      if (value !== undefined && value !== null) input.value = value;
+      if (field.placeholder) input.placeholder = field.placeholder;
+      if (field.required) input.required = true;
+      return input;
+    }
+
+    function renderTextarea(field, value='') {
+      const ta = document.createElement('textarea');
+      ta.id = field.name; ta.name = field.name; ta.rows = field.rows || 4; ta.value = value || '';
+      if (field.placeholder) ta.placeholder = field.placeholder;
+      if (field.required) ta.required = true;
+      return ta;
+    }
+
+    function normalizeOptions(options) {
+      if (!options) return [];
+      if (Array.isArray(options)) {
+        return options.map(o => typeof o === 'string' ? {label:o, value:o} : o);
+      }
+      return [];
+    }
+
+    function renderSelect(field, value='') {
+      const sel = document.createElement('select');
+      sel.id = field.name; sel.name = field.name;
+      if (field.required) sel.required = true;
+      const opts = normalizeOptions(field.options);
+      for (const o of opts) {
+        const opt = document.createElement('option');
+        opt.value = o.value; opt.textContent = o.label;
+        if (String(value) === String(o.value)) opt.selected = true;
+        sel.appendChild(opt);
+      }
+      return sel;
+    }
+
+    function renderMultiSelect(field, values=[]) {
+      const sel = document.createElement('select');
+      sel.id = field.name; sel.name = field.name; sel.multiple = true; sel.size = Math.min(6, (field.options?.length || 4));
+      const opts = normalizeOptions(field.options);
+      const valueSet = new Set(values || []);
+      for (const o of opts) {
+        const opt = document.createElement('option');
+        opt.value = o.value; opt.textContent = o.label;
+        if (valueSet.has(o.value)) opt.selected = true;
+        sel.appendChild(opt);
+      }
+      return sel;
+    }
+
+    function renderMultiControl(field, values=[]) {
+      const opts = normalizeOptions(field.options);
+      const initial = new Set(values || []);
+      if ((field.widget || '').toLowerCase() === 'checkboxes') {
+        const box = document.createElement('div');
+        const inputs = [];
+        for (const o of opts) {
+          const id = `${field.name}__${o.value}`;
+          const label = document.createElement('label'); label.style.display = 'inline-flex'; label.style.alignItems = 'center'; label.style.gap = '.5rem'; label.style.marginRight = '1rem'; label.style.marginBottom = '.35rem';
+          const cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = id; cb.name = field.name; cb.value = o.value; cb.checked = initial.has(o.value);
+          inputs.push(cb);
+          const span = document.createElement('span'); span.textContent = o.label;
+          label.appendChild(cb); label.appendChild(span); box.appendChild(label);
+        }
+        return {
+          el: box,
+          getValues: () => inputs.filter(i => i.checked).map(i => i.value),
+          onChange: (fn) => inputs.forEach(i => i.addEventListener('change', () => fn(inputs.filter(x=>x.checked).map(x=>x.value)))),
+        };
+      }
+      // Fallback to <select multiple>
+      const sel = renderMultiSelect(field, values);
+      return {
+        el: sel,
+        getValues: () => Array.from(sel.querySelectorAll('option:checked')).map(o=>o.value),
+        onChange: (fn) => sel.addEventListener('change', () => fn(Array.from(sel.querySelectorAll('option:checked')).map(o=>o.value))),
+      };
+    }
+
+    function renderFile(field) {
+      const input = document.createElement('input');
+      input.type = 'file'; input.id = field.name; input.name = field.name;
+      if (field.accept) input.accept = field.accept;
+      if (field.multiple) input.multiple = true;
+      return input;
+    }
+
+    function colsToObjects(columns) {
+      // Accept ["Col A", "Col B"] or [{name,label,type,...}]. Preserve extra props like options.
+      return (columns || []).map(c => {
+        if (typeof c === 'string') return { name: c.toLowerCase().replace(/\s+/g,'_'), label: c, type: 'text' };
+        const obj = Object.assign({}, c);
+        obj.label = obj.label || obj.name;
+        obj.type = obj.type || 'text';
+        return obj;
+      });
+    }
+
+    function renderDynamicTable(field, valueRows=[]) {
+      const wrapper = document.createElement('div');
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const tbody = document.createElement('tbody');
+      const cols = colsToObjects(field.columns);
+
+      // Header
+      const trh = document.createElement('tr');
+      for (const col of cols) {
+        const th = document.createElement('th'); th.textContent = col.label; trh.appendChild(th);
+      }
+      const thAct = document.createElement('th'); thAct.textContent = ''; trh.appendChild(thAct);
+      thead.appendChild(trh);
+
+      const rowConds = field.row_conditions || null; // { by: 'component_type', map: { Node: [...], ... } }
+
+      function createColControl(col, value) {
+        if ((col.type || '').toLowerCase() === 'select') {
+          const sel = document.createElement('select');
+          sel.name = `${field.name}.${col.name}`;
+          const opts = normalizeOptions(col.options);
+          // Placeholder option
+          const ph = document.createElement('option'); ph.value = ''; ph.textContent = '-- Select --';
+          if (!value) ph.selected = true; sel.appendChild(ph);
+          for (const o of opts) {
+            const opt = document.createElement('option');
+            opt.value = o.value; opt.textContent = o.label;
+            if (String(value) === String(o.value)) { opt.selected = true; ph.selected = false; }
+            sel.appendChild(opt);
+          }
+          return sel;
+        }
+        const inp = document.createElement('input');
+        inp.type = col.type || 'text';
+        inp.name = `${field.name}.${col.name}`;
+        inp.value = value || '';
+        return inp;
+      }
+
+      function addRow(rowData={}) {
+        const tr = document.createElement('tr');
+        let selectElForConds = null;
+        for (const col of cols) {
+          const td = document.createElement('td');
+          const ctrl = createColControl(col, rowData[col.name] || '');
+          if (rowConds && col.name === rowConds.by) selectElForConds = ctrl;
+          td.appendChild(ctrl); tr.appendChild(td);
+        }
+        const tdAct = document.createElement('td'); tdAct.className = 'table-actions';
+        const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'btn'; rm.textContent = 'Remove';
+        tdAct.appendChild(rm); tr.appendChild(tdAct);
+
+        // Extra row for conditional subfields
+        const extraTr = document.createElement('tr');
+        const extraTd = document.createElement('td'); extraTd.colSpan = cols.length + 1; // include actions col
+        const extraBox = document.createElement('div'); extraBox.style.padding = '.5rem 0'; extraBox.style.borderTop = '1px dashed #374151'; extraBox.style.marginTop = '.5rem'; extraTd.appendChild(extraBox);
+        extraTr.appendChild(extraTd);
+
+        function renderExtras(choice) {
+          extraBox.innerHTML = '';
+          if (!rowConds || !rowConds.map) return;
+          const defs = rowConds.map[choice] || [];
+          if (!defs.length) return;
+          for (const sf of defs) {
+            const wrap = document.createElement('div'); wrap.style.marginTop = '.35rem';
+            const lab = document.createElement('label'); lab.textContent = sf.label || sf.name; lab.style.display = 'block'; lab.style.marginBottom = '.2rem';
+            let input;
+            if ((sf.type || 'text') === 'textarea') {
+              input = document.createElement('textarea'); input.rows = sf.rows || 3; input.value = rowData[sf.name] || '';
+            } else {
+              input = document.createElement('input'); input.type = sf.type || 'text'; input.value = rowData[sf.name] || '';
+            }
+            input.setAttribute('data-extra-name', sf.name);
+            wrap.appendChild(lab); wrap.appendChild(input); extraBox.appendChild(wrap);
+          }
+        }
+
+        if (selectElForConds) {
+          const update = () => renderExtras(selectElForConds.value);
+          selectElForConds.addEventListener('change', update);
+        }
+
+        rm.onclick = () => { tr.remove(); extraTr.remove(); };
+
+        tbody.appendChild(tr);
+        tbody.appendChild(extraTr);
+
+        // Ensure initial extras render after nodes are in the DOM
+        if (selectElForConds) {
+          const evtInit = () => renderExtras(selectElForConds.value);
+          // microtask to ensure DOM is ready
+          Promise.resolve().then(evtInit);
+        }
+      }
+
+      if (Array.isArray(valueRows) && valueRows.length) valueRows.forEach(addRow);
+      else addRow();
+
+      const add = document.createElement('button'); add.type = 'button'; add.className = 'btn'; add.textContent = `+ Add Row`;
+      add.onclick = () => addRow();
+
+      table.appendChild(thead); table.appendChild(tbody);
+      wrapper.appendChild(table); wrapper.appendChild(add);
+      return { wrapper, getRows: () => {
+        const rows = [];
+        // We look at main rows only: those that have a following sibling extra row
+        const mainRows = Array.from(tbody.querySelectorAll('tr')).filter(tr => tr.nextElementSibling && tr.nextElementSibling.querySelector('[data-extra-name]'));
+        const allRows = mainRows.length ? mainRows : Array.from(tbody.querySelectorAll('tr')).filter((_,i) => i % 2 === 0);
+        for (const tr of allRows) {
+          const row = {};
+          for (const col of cols) {
+            const sel = tr.querySelector(`select[name="${field.name}.${col.name}"]`);
+            const inp = sel || tr.querySelector(`input[name="${field.name}.${col.name}"]`);
+            row[col.name] = inp ? (inp.value || '') : '';
+          }
+          const extraTr = tr.nextElementSibling;
+          if (extraTr) {
+            const extras = extraTr.querySelectorAll('[data-extra-name]');
+            extras.forEach(el => { row[el.getAttribute('data-extra-name')] = el.value || ''; });
+          }
+          rows.push(row);
+        }
+        return rows;
+      }};
+    }
+
+    function renderConditionalSelect(field, value={}, ctx) {
+      const container = document.createElement('div');
+      const sel = renderSelect({...field, options: field.options}, value.selection || '');
+      container.appendChild(sel);
+      const sub = document.createElement('div'); sub.style.marginTop = '.5rem'; container.appendChild(sub);
+
+      const condMap = field.conditions || {};
+
+      function renderSubs(choice) {
+        sub.innerHTML = '';
+        const subs = condMap[choice] || [];
+        for (const sf of subs) {
+          const group = document.createElement('div');
+          const lab = document.createElement('label'); lab.htmlFor = sf.name; lab.textContent = sf.label || sf.name; group.appendChild(lab);
+          let ctrl;
+          const v = value[sf.name] ?? '';
+          if (sf.type === 'textarea') ctrl = renderTextarea(sf, v);
+          else if (sf.type === 'select') ctrl = renderSelect(sf, v);
+          else if (sf.type === 'file') ctrl = renderFile(sf);
+          else ctrl = renderInput({...sf, type: sf.type || 'text'}, v);
+          group.appendChild(ctrl); sub.appendChild(group);
+        }
+      }
+
+      sel.addEventListener('change', () => renderSubs(sel.value));
+      renderSubs(sel.value);
+
+      return { wrapper: container, getValue: async () => {
+        const out = { selection: sel.value };
+        const subs = condMap[sel.value] || [];
+        for (const sf of subs) {
+          const el = sub.querySelector(`#${CSS.escape(sf.name)}`) || sub.querySelector(`[name="${sf.name}"]`);
+          if (!el) continue;
+          if (sf.type === 'file') {
+            out[sf.name] = await readFiles(el);
+          } else if (sf.type === 'select') {
+            out[sf.name] = el.value;
+          } else {
+            out[sf.name] = el.value || '';
+          }
+        }
+        return out;
+      }};
+    }
+
+    function renderMultiselectConditional(field, value={}, ctx) {
+      const container = document.createElement('div');
+      const multi = renderMultiControl(field, value.selection || []);
+      container.appendChild(multi.el);
+      const sub = document.createElement('div'); sub.style.marginTop = '.5rem'; container.appendChild(sub);
+      const condMap = field.conditions || {};
+
+      function renderSubs(values) {
+        sub.innerHTML = '';
+        for (const key of Object.keys(condMap)) {
+          if (!values.includes(key)) continue;
+          for (const sf of condMap[key]) {
+            const group = document.createElement('div');
+            const lab = document.createElement('label'); lab.htmlFor = sf.name; lab.textContent = sf.label || sf.name; group.appendChild(lab);
+            let ctrl;
+            const v = value[sf.name] ?? '';
+            if (sf.type === 'textarea') ctrl = renderTextarea(sf, v);
+            else if (sf.type === 'select') ctrl = renderSelect(sf, v);
+            else if (sf.type === 'file') ctrl = renderFile(sf);
+            else ctrl = renderInput({...sf, type: sf.type || 'text'}, v);
+            group.appendChild(ctrl); sub.appendChild(group);
+          }
+        }
+      }
+
+      multi.onChange(renderSubs);
+      renderSubs(multi.getValues());
+
+      return { wrapper: container, getValue: async () => {
+        const selected = multi.getValues();
+        const out = { selection: selected };
+        for (const key of Object.keys(condMap)) {
+          if (!selected.includes(key)) continue;
+          for (const sf of condMap[key]) {
+            const el = sub.querySelector(`#${CSS.escape(sf.name)}`) || sub.querySelector(`[name="${sf.name}"]`);
+            if (!el) continue;
+            if (sf.type === 'file') {
+              out[sf.name] = await readFiles(el);
+            } else if (sf.type === 'select') {
+              out[sf.name] = el.value;
+            } else {
+              out[sf.name] = el.value || '';
+            }
+          }
+        }
+        return out;
+      }};
+    }
+
+    async function readFiles(input) {
+      const files = input.files ? Array.from(input.files) : [];
+      const out = [];
+      for (const f of files) {
+        const b64 = await new Promise((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(String(r.result).split(',')[1] || '');
+          r.onerror = reject; r.readAsDataURL(f);
+        });
+        out.push({ name: f.name, type: f.type, size: f.size, base64: b64 });
+      }
+      return out;
+    }
+
+    // Build the form from definition
+    const controls = new Map(); // name -> accessor {getValue:async()}
+
+    function addField(group, field, initialValue) {
+      const wrap = document.createElement('div');
+      if (field.type !== 'dynamic_table') {
+        const lab = document.createElement('label'); lab.htmlFor = field.name; lab.textContent = field.label || field.name; wrap.appendChild(lab);
+      }
+
+      if (field.type === 'textarea') {
+        const el = renderTextarea(field, initialValue);
+        wrap.appendChild(el);
+        controls.set(field.name, { getValue: async () => el.value });
+      } else if (field.type === 'select') {
+        const el = renderSelect(field, initialValue);
+        wrap.appendChild(el);
+        controls.set(field.name, { getValue: async () => el.value });
+      } else if (field.type === 'multiselect') {
+        const multi = renderMultiControl(field, initialValue || []);
+        wrap.appendChild(multi.el);
+        controls.set(field.name, { getValue: async () => multi.getValues() });
+      } else if (field.type === 'file') {
+        const el = renderFile(field);
+        wrap.appendChild(el);
+        controls.set(field.name, { getValue: async () => await readFiles(el) });
+      } else if (field.type === 'dynamic_table') {
+        const { wrapper, getRows } = renderDynamicTable(field, initialValue || []);
+        // label for dynamic table
+        const lab = document.createElement('label'); lab.textContent = field.label || field.name; lab.style.display = 'block'; lab.style.marginBottom = '.35rem';
+        group.appendChild(lab);
+        group.appendChild(wrapper);
+        controls.set(field.name, { getValue: async () => getRows() });
+        return; // already appended to group
+      } else if (field.type === 'conditional_select') {
+        const comp = renderConditionalSelect(field, initialValue || {}, controls);
+        wrap.appendChild(comp.wrapper);
+        controls.set(field.name, { getValue: comp.getValue });
+      } else if (field.type === 'multiselect_conditional') {
+        const comp = renderMultiselectConditional(field, initialValue || {}, controls);
+        wrap.appendChild(comp.wrapper);
+        controls.set(field.name, { getValue: comp.getValue });
+      } else {
+        const el = renderInput(field, initialValue);
+        wrap.appendChild(el);
+        controls.set(field.name, { getValue: async () => el.value });
+      }
+
+      if (field.description) {
+        const p = document.createElement('div'); p.className = 'help'; p.textContent = field.description; wrap.appendChild(p);
+      }
+
+      group.appendChild(wrap);
+    }
+
+    function normSection(sec) {
+      // Ensure a section has title and fields array
+      return { title: sec.title || '', fields: Array.isArray(sec.fields) ? sec.fields : [] };
+    }
+
+    function formSectionsFromDefinition(def) {
+      if (!def) return [];
+      if (Array.isArray(def.sections)) return def.sections.map(normSection);
+      if (def.stages && def.stage_order) {
+        return def.stage_order.map(k => ({ title: (def.stages[k]?.title)||k, fields: (def.stages[k]?.fields)||[] }));
+      }
+      return [];
+    }
+
+    function initialValuesFromPayload(payload) {
+      // Prefill based on payload keys matching field names
+      return payload.prefill || {};
+    }
+
+    function setUpForm(def, payload) {
+      form.innerHTML = '';
+      controls.clear();
+
+      const sections = formSectionsFromDefinition(def);
+      const initial = initialValuesFromPayload(payload);
+
+      sections.forEach((sec, i) => {
+        const fs = document.createElement('fieldset');
+        const lg = document.createElement('legend'); lg.textContent = `${i+1}. ${sec.title}`; fs.appendChild(lg);
+        const grp = document.createElement('div'); fs.appendChild(grp);
+        (sec.fields || []).forEach(f => addField(grp, f, initial[f.name]));
+        form.appendChild(fs);
+      });
+    }
+
+    setUpForm(formdef, payload);
+
+    // Draft save/load
+    const DRAFT_KEY = payload.draftKey || 'handover_draft_portable';
+    $('#save-draft').addEventListener('click', async () => {
+      const answers = {};
+      for (const [name, acc] of controls) answers[name] = await acc.getValue();
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ answers }));
+      alert('Draft saved locally.');
+    });
+
+    $('#load-draft').addEventListener('click', () => {
+      const raw = localStorage.getItem(DRAFT_KEY); if (!raw) return alert('No draft found.');
+      try { const { answers } = JSON.parse(raw); if (answers) applyAnswers(answers); } catch {}
+    });
+
+    $('#clear-draft').addEventListener('click', () => {
+      localStorage.removeItem(DRAFT_KEY); alert('Draft cleared.');
+    });
+
+    function applyAnswers(ans) {
+      for (const [name, val] of Object.entries(ans)) {
+        const ctrl = document.getElementById(name) || form.querySelector(`[name="${name}"]`);
+        if (!ctrl) continue;
+        if (Array.isArray(val) && ctrl.tagName === 'SELECT' && ctrl.multiple) {
+          const set = new Set(val.map(String));
+          for (const o of ctrl.options) o.selected = set.has(String(o.value));
+        } else if (typeof val === 'object' && val && (ctrl.tagName === 'DIV' || ctrl.tagName === 'SELECT')) {
+          // complex controls are managed by getValue; skip direct patch
+        } else if (typeof val === 'string' || typeof val === 'number') {
+          ctrl.value = val;
+        }
+      }
+    }
+
+    function download(filename, content, mime = 'application/json') {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+
+    $('#download').addEventListener('click', async (e) => {
+      e.preventDefault();
+      const answers = {};
+      for (const [name, acc] of controls) answers[name] = await acc.getValue();
+      const data = {
+        meta: { generated_at: new Date().toISOString(), version: 1 },
+        payload,
+        form_definition: formdef,
+        answers
+      };
+      const fname = payload.outputFilename || `handover-result-${Date.now()}.json`;
+      download(fname, JSON.stringify(data, null, 2));
+    });
+  </script>
+</body>
+</html>
